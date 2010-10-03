@@ -1,0 +1,5 @@
+exportClasses(closure)
+
+exportMethods(show, summary, defining, hypotheses)
+
+export(closed, pick, pickFisher, pickSimes)
