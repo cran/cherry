@@ -19,6 +19,33 @@ pickFisher <- function(all, select = seq_along(all), alpha=0.05, silent=FALSE) {
     out
 }
 
+
+curveFisher <- function(all, alpha=0.05) {
+  lpv <- -2*log(sort(all))
+  res <- numeric(length(lpv))
+  chisqs <- qchisq(1-alpha, df=2*1:length(lpv), lower=T)
+  st <- 1
+  ed <- 1
+  while (ed <= length(lpv)) {
+    ins <- seq(st,ed)
+    outs <- rev(seq_along(lpv)[-(1:ed)])
+    cr.v <- max(chisqs[ed-st+1+0:length(outs)] - cumsum(c(0,lpv[outs])))
+    rej <- (sum(lpv[ins]) >= cr.v)
+    if (rej & (st < ed)) {
+      st <- st+1
+    } else if (rej) {
+      res[ed] <- st
+      ed <- ed + 1
+    } else {
+      res[ed] <- st - 1
+      ed <- ed + 1
+    }
+  }
+  names(res) <- names(lpv)
+  res
+}
+
+
 pickSimes <- function(all, select = seq_along(all), alpha=0.05, hommel = FALSE, silent=FALSE) {
   rej <- sort(all[select], decreasing=TRUE)
   nr <- sort(setdiff(all, rej), decreasing=TRUE)
