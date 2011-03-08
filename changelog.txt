@@ -1,2 +1,7 @@
+0.0.3
+- Rewritten pickSimes() for increased computational efficiency
+- changed name of first argument in pickFisher() and pickSimes() from "all" to "p"
+
 0.0.2
+- Removed zipData=yes from description
 - man file of closure-class.Rd repaired.
