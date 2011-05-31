@@ -33,7 +33,10 @@ pick (closure, reject, silent=FALSE)
   mytest <- function(hyps) {
     others <- setdiff(hypotheses, hyps)
     form <- formula(paste(c("low~",  paste(c("1", others), collapse="+"))))
-    anova(glm(form, data=birthwt, family=binomial), fullfit, test="Chisq")$"P(>|Chi|)"[2]
+    anov <- anova(glm(form, data=birthwt, family=binomial), fullfit, test="Chisq")
+    res <- anov$"Pr("[2]                    # for R >= 2.14.0
+    if (is.null(res)) res <- anov$"P("[2]   # earlier versions
+    res
   }
 
   # perform the closed testing

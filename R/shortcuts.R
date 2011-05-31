@@ -1,6 +1,7 @@
 pickFisher <- function(p, select = seq_along(p), alpha=0.05, silent=FALSE) {
 
   rej <- p[select]
+  if (any(is.na(rej))) stop("invalid selection or NA in p-values")
   nr <- setdiff(p, rej)
   nr <- nr[nr > min(rej)]
   lrej <- -2*log(sort(rej, decreasing=TRUE))
@@ -21,16 +22,28 @@ pickFisher <- function(p, select = seq_along(p), alpha=0.05, silent=FALSE) {
 }
 
 
-curveFisher <- function(p, select = seq_along(p), alpha=0.05, plot = TRUE) {
+curveFisher <- function(p, select = seq_along(p), order, alpha=0.05, plot = TRUE) {
 
-  ranks <- sort(rank(p, ties="first")[select])
+  selected <- !missing(select) || missing(order)
+  ordered <- !missing(order)
+  if (ordered & selected) 
+    stop("please provide either select or order, but not both")
+  if (selected)
+    ranks <- sort(rank(p, ties="first")[select])
+  else
+    ranks <- rank(p, ties="first")[order]
+  if (length(ranks)==0 || any(is.na(ranks)))
+    stop("invalid selection or NA in p-values")
   others <- setdiff(length(p):1, ranks)
   lpv <- -2*log(sort(p))
   res <- numeric(length(ranks))
   chisqs <- qchisq(1-alpha, df=2*1:length(lpv), lower=T)
   st <- 1
   for (ed in 1:length(ranks)) {
-    ins <- ranks[seq(st,ed)]
+    if (selected)
+      ins <- ranks[seq(st,ed)]
+    else
+      ins <- sort(ranks[1:ed])[seq(st,ed)]
     outs <- setdiff(length(lpv):min(ins), ins)
     cr.v <- max(chisqs[ed-st+1+0:length(outs)] - cumsum(c(0,lpv[outs])))
     rej <- (sum(lpv[ins]) >= cr.v)
@@ -38,7 +51,7 @@ curveFisher <- function(p, select = seq_along(p), alpha=0.05, plot = TRUE) {
       st <- st+1
     res[ed] <- st-1
   }
-  names(res) <- names(lpv)
+  names(res) <- names(ranks)
   if (plot) {
     false <- c(0, res)
     xs <- 1:length(false)-.5
@@ -101,15 +114,30 @@ pickSimes <- function(p, select = seq_along(p), alpha=0.05, hommel=FALSE, silent
 }
 
 
-curveSimes <- function(p, select = seq_along(p), alpha=0.05, hommel=FALSE, plot = TRUE) {
+curveSimes <- function(p, select = seq_along(p), order, alpha=0.05, hommel=FALSE, plot = TRUE) {
 
-  ranks <- sort(rank(p, ties="first")[select])
+  selected <- !missing(select) || missing(order)
+  ordered <- !missing(order)
+  if (ordered & selected) 
+    stop("please provide either select or order, but not both")
+  if (selected) {
+    ranks <- sort(rank(p, ties="first")[select])
+    endpoint <- length(ranks) - pickSimes(p, select, alpha, hommel, silent=TRUE)
+  } else {
+    ranks <- rank(p, ties="first")[order]
+    endpoint <- length(ranks) - pickSimes(p, order, alpha, hommel, silent=TRUE)
+  }
+  if (length(ranks)==0 || any(is.na(ranks)))
+    stop("invalid selection or NA in p-values")
   p <- sort(p)
   others <- setdiff(length(p):1, ranks)
   res <- numeric(length(ranks))
   st <- 1
   for (ed in 1:length(ranks)) {
-    ins <- seq_along(p) %in% ranks[seq(st,ed)]
+    if (selected)
+      ins <- seq_along(p) %in% ranks[seq(st,ed)]
+    else
+      ins <- seq_along(p) %in% sort(ranks[1:ed])[seq(st,ed)]
     outs <- (!logical(length(p))) & (cummax(ins)==1) & (!ins)
     participate <- numeric(length(p))
     participate[ins] <- 1+sum(outs)
@@ -134,6 +162,10 @@ curveSimes <- function(p, select = seq_along(p), alpha=0.05, hommel=FALSE, plot 
     if (rej)
       st <- st+1
     res[ed] <- st-1
+    if (st > endpoint) {
+      res[ed:length(ranks)] <- endpoint
+      break
+    }
   }
   names(res) <- names(p[ranks])
   if (plot) {
