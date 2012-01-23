@@ -1,0 +1,12 @@
+aea6686fce91cf071d79ba1fb19f7bfd *DESCRIPTION
+0697f9813451e5d7686ec6045eb18d13 *NAMESPACE
+0d01d9fdaa1b3a6989aeacffbc69bb56 *R/closed.R
+a0338a544d72bba51dcb6e77d409b8f9 *R/shortcuts.R
+db804d8c4c26edcf6f4e7b838e66159f *changelog.txt
+aa40970da67b1352f888170662645dba *data/NAEP.RData
+5cbfb14027dba577ef75578292d521c5 *man/NAEP.Rd
+f2799d980f8c21e2ebcbcea02f609064 *man/adjusted.Rd
+bb6fdbe21ca655bdde803daa37b8f3ff *man/closed.Rd
+9b27b5143a0c56c3593f740f70496970 *man/closure-class.Rd
+9a5ece988bd3e5a7a62dd1b231ec16f3 *man/select.Rd
+34566a5bfd19a6357dc8b62abcc46c3f *man/shortcuts.Rd

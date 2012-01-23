@@ -6,19 +6,19 @@
 
 \description{Calculates confidence limits for the number of true hypotheses on the basis of the closed testing procedure.}
 
-\usage{
-pick (closure, reject, silent=FALSE)
-}
+\usage{ pick (closure, reject, alpha, silent=FALSE, plot=FALSE) }
 
 \arguments{
     \item{closure}{An object of class \code{\link{closure}}, typically created through a call to \code{\link{closed}} .}
     \item{reject}{A character vector identifying the hypotheses to be rejected. Must be a subvector of \code{hypotheses(closure)}.}
+    \item{alpha}{For closure objects with adjusted p-values, specifies the value of alpha for which confidence limits are to be calculated (optional).}
     \item{silent}{If \code{FALSE}, prints the result to the screen.}
+    \item{plot}{Whether a a confidence distribution should be plotted. Only available for closure objects with adjusted p-values.}
 }
 
 \details{The function \code{pick} calculates a confidence interval for the number of true hypotheses among a selected set of hypotheses.}
 
-\value{The function returns the upper confidence limit for the number of true hypotheses among the set \code{reject}. The lower confidence limit is always equal to 0.}
+\value{The function returns the upper confidence limit for the number of true hypotheses among the set \code{reject}. The lower confidence limit is always equal to 0. If \code{\link{closed}} was called with \code{alpha=NA}, a confidence distribution is plotted and returned.}
 
 \author{Jelle Goeman: \email{j.j.goeman@lumc.nl}}
 

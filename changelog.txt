@@ -1,4 +1,7 @@
 0.1-5
+- added alpha=NA option to closed() to calculate adjusted p-values
+- changed pick() to give fiducial disstribution in case alpha=NA
+- fixed bug where pick() returned inf when it should return m (the number of hypotheses).
 - simplified change to Pr(>|Chi|)
 - added input check on invalid selection to pickFisher()
 - added order argument to curveFisher() and curveSimes()

@@ -6,19 +6,20 @@
 
 \description{Performs the closed testing procedure for user-specified local test.}
 
-\usage{
-closed (test, hypotheses, alpha = 0.05)
-}
+\usage{ closed (test, hypotheses, alpha = 0.05, adjust=FALSE) }
 
 \arguments{
     \item{test}{A function that performs the local test. The function should accept a subvector of the \code{hypotheses} argument as input, and return a p-value.}
     \item{hypotheses}{Identifiers of the collection of elementary hypotheses.}
-    \item{alpha}{The significance level of the test procedure.}
+    \item{alpha}{The significance level of the test procedure. If set to \code{NA}, the function calculates adjusted p-values for each hypothesis in the closure.}
+    \item{adjust}{Whether adjusted p-values should be calculated.}
 }
 
 \details{The function \code{closed} performs the closed testing procedure on the collection \code{hypotheses}, testing all their intersection hypotheses and controlling the familywise error rate.}
 
-\note{The number of intersection hypotheses is exponential in the number of elementary hypotheses. The number of elementary hypotheses is therefore limited to \code{log2(.Machine$integer.max+1)} (typically 31) for computational reasons.}
+\note{The number of intersection hypotheses is exponential in the number of elementary hypotheses. The number of elementary hypotheses is therefore limited to \code{log2(.Machine$integer.max+1)} (typically 31) for computational reasons.
+
+It is possible to set both \code{adjust} to \code{TRUE} and specify \code{alpha}. In that case, adjusted p-values are calculated up to a value \code{alpha}; all higher p-values are set to 1.}
 
 \value{The function \code{closed} returns an object of class \code{\link{closure}}.}
 
@@ -48,6 +49,10 @@ closed (test, hypotheses, alpha = 0.05)
   summary(cl)
 
   # how many variables among a chosen set are associated with the response?
+  pick(cl, c("ht", "lwt", "smoke", "ui"))
+  
+  # adjusted p-values and a confidence distribution
+  cl <- closed(mytest, hypotheses, alpha=NA)
   pick(cl, c("ht", "lwt", "smoke", "ui"))
 }
 

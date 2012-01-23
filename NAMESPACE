@@ -1,5 +1,5 @@
 exportClasses(closure)
 
-exportMethods(show, summary, defining, hypotheses)
+exportMethods(show, defining, hypotheses, shortlist)
 
-export(closed, pick, pickFisher, pickSimes, curveFisher, curveSimes)
+export(closed, pick, adjusted, pickFisher, pickSimes, curveFisher, curveSimes)

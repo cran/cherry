@@ -6,6 +6,8 @@
 \alias{summary,closure-method}
 \alias{defining}
 \alias{defining,closure-method}
+\alias{shortlist}
+\alias{shortlist,closure-method}
 \alias{hypotheses}
 \alias{hypotheses,closure-method}
 
@@ -16,9 +18,11 @@
 \section{Slots}{
   These slots are not meant to be directly accessed by the user.
   \describe{
+    \item{\code{adjusted}:}{Object of class "numeric". Sores the adjusted p-values.}
     \item{\code{defining}:}{Object of class "integer". Stores the identifiers of the intersection hypotheses that are the defining rejections of the closed testing procedure. The identifiers should be read as binary booleans, i.e. 19 = 10011 (binary) is the intersection of the first, second and fifth elementary hypothesis.}
     \item{\code{hypotheses}:}{Object of class "character". Holds the names of the elementary hypotheses.}
     \item{\code{alpha}:}{Object of class "numeric". The type I error level chosen.}
+    \item{\code{max.alpha}:}{Object of class "numeric". The largest value for which adjusted p-values have been calculated.}
   }
 }
 
@@ -27,6 +31,7 @@
     \item{show}{(closure): Prints a brief description of the test results, including the upper bound of the number of true hypotheses and the corresponding lower bound to the number of false hypotheses among the full set.}
     \item{summary}{(closure): Prints the test results (as \code{show}) plus the defining rejections.}
     \item{defining}{(closure): Extracts the defining rejections as a list.}
+    \item{shortlist}{(closure): Extracts the shortlist as a list.}
     \item{hypotheses}{(closure): Extracts the hypotheses slot.}
     }
 }
@@ -54,10 +59,11 @@
     res
   }
 
-  # perform the closed testing
+  # perform the closed testing procedure
   cl <- closed(mytest, hypotheses)
   summary(cl)
   defining(cl)
+  shortlist(cl)
   hypotheses(cl)
 
   # how many variables among a chosen set are associated with the response?
