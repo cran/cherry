@@ -10,6 +10,10 @@
 \alias{shortlist,closure-method}
 \alias{hypotheses}
 \alias{hypotheses,closure-method}
+\alias{alpha,closure-method}
+\alias{alpha<-,closure-method}
+\alias{alpha<-}
+\alias{alpha}
 
 \title{Class "closure" for storing the result of the closed testing procedure}
 

@@ -1,0 +1,330 @@
+%\VignetteIndexEntry{cherry}
+%\VignetteDepends{cherry}
+%\VignetteKeywords{Hypothesis testing}
+%\VignettePackage{cherry}
+
+\documentclass[a4paper]{article}
+\usepackage{natbib, Sweave, times}
+\bibliographystyle{apalike}
+
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textit{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+\newcommand{\Rfunarg}[1]{{\textit{#1}}}
+\sloppy
+
+\title{Using the \Rpackage{cherry} \texttt{R} package}
+
+\author{Jelle Goeman \and Aldo Solari}
+
+\date{Package version \Sexpr{packageDescription("cherry")$Version}\\Date \Sexpr{packageDescription("cherry")$Date}}
+
+
+\begin{document}
+
+\maketitle \tableofcontents \newpage
+
+\section{Citing \Rpackage{cherry}}
+
+If you use the \Rpackage{cherry} package, please cite the paper J. J. Goeman and A. Solari, Multiple testing for exploratory research, \emph{Statistical Science}, 26 (4) 584--597.
+
+\section{Introduction}
+
+The \Rpackage{cherry} package is a package for multiple hypothesis testing. The approach used by \Rpackage{cherry} is specially designed for exploratory inference.
+
+\subsection{Exploratory inference}
+
+Suppose a researcher has performed an experiment, possibly a genomics experiment or some other experiment in which a large or small number of statistical hypotheses have been tested. From the results of the experiment the user wants to select a number of `promising' results. Which results are considered promising may depend on any mixture of considerations, such as (unadjusted) significance, effect size, and domain knowledge. One question the researcher may ask is how many false positive findings are present in the selected list. This is the question the \Rpackage{cherry} package is designed to answer.
+
+The suggested way of working with this package is as follows. Before the data are gathered, two choices have to be made. The first choice is what hypotheses are of potential interest. This is the working collection of hypotheses. The second choice is what statistical test is to be done for each hypothesis, and for each intersection (or combination) of hypotheses. Examples of such choices are given in the rest of this vignette. Nothing else has to be decided before data collection. After data collection, the researcher can study the data as much as he or she likes, before deciding on a collection of rejected hypotheses of interest. This choice, together with the working collection and the tests is fed into the \Rpackage{cherry} package, which will return a confidence statement on the maximum number of true null hypotheses, i.e.\ false rejections, among the selected set. On the basis of this assessment, the researcher may reevaluate and come up with a different selection of interesting hypotheses, for which \Rpackage{cherry} will again give a confidence statement. These confidence statements are not compromised by previous looks at the data, but remain valid however many times the researcher comes up with a new set.
+
+In \Rpackage{cherry} the traditional roles of user and algorithm in multiple testing have been reversed. In classical multiple testing procedures the user's task is to set an error rate to be controlled, and the task of the multiple testing procedure is to decide what hypotheses to reject. In \Rpackage{cherry}, the user chooses what hypotheses to reject, and the multiple testing procedure calculates the error rate. This way of working allows the user much more freedom and control. Most importantly, the error rates that are calculated are not invalidated by multiple looks at the data, and the user is free to study the data in every possible way before finally deciding what rejections to make. This makes the method ideally suited for exploratory research.
+
+Throughout the package and the vignette, the words ``true hypothesis'' and ``false rejection'' are used interchangeably, as rejection of a true hypothesis amounts to a false rejection. Similarly, ``false hypothesis'' and ``correct rejection'' often used as synonyms.
+
+The theory behind the methods is explained in detail in the papers \cite{Goeman2011} and \cite{Goeman2011b} and we refer readers to these papers for details. In this document, we present some worked out examples to demonstrate how \Rpackage{cherry} can be used and how its results should be interpreted. We start in Section \ref{fishersimes} with methods based on p-values that use either Fisher combinations or Simes inequality to combine p-values. These methods have the advantage that they are quick to use even if tens of thousands of hypotheses have been tested, but they do depend on assumptions and cannot always be used. Next, Section \ref{full} presents the general method in its full flexibility. This general method is computationally quite intensive and should only be used if the total number of hypotheses in the multiple testing problem is not much greater than 20. More methods of different types will be added to the \Rpackage{cherry} package in the future.
+
+For an explanation of the theory behind the methods, and for more explanation and examples, see the papers \cite{Goeman2011} and \cite{Goeman2011b}.
+
+
+\subsection{Intersection hypotheses and local tests}
+
+The \Rpackage{cherry} package assumes that before data collection the user is able to make a complete list of all hypotheses that are of potential interest. For each of these hypotheses, a statistical hypothesis test must be formulated. Moreover, statistical tests must also be formulated for all possible intersections of these chosen hypotheses. An intersection hypothesis of a collection of hypotheses is a hypothesis that is true if and only if every hypothesis in the collection of hypotheses is true. For example, if null hypothesis $H_A$ asserts that the mean treatment effect of drug $A$ is zero, and the hypothesis $H_B$ asserts that the mean treatment effect of drug $B$ is zero, then the intersection hypothesis $H_{AB}=H_A\cap H_B$ asserts that the treatment effects of both drugs are zero. A statistical test for an intersection hypothesis is known as a \emph{global test} or a \emph{local test}. Examples of frequently used global and local tests are F-tests in ANOVA models or regression models, or gene set tests in microarray data analysis.
+
+The user of the \Rpackage{cherry} package is free to choose any local test that is valid for the data at hand. The methods in Section \ref{full} allow the user to work with any self-defined local test. Unfortunately, these methods are computationally very expensive, and should only be used when the total number of hypotheses in the multiple testing problem is not much greater than 20. For specific choices of the local test, that use either Fisher combinations or Simes inequality, quicker algorithms are available. Special functions for those local tests are describe in Section \ref{fishersimes}
+
+
+
+\section{Methods based on p-values} \label{fishersimes}
+
+In this section we present some simple methods that can be used when each hypothesis in the working collection has been tested and given a p-value, and when intersection hypotheses are tested with simple $p$-value-based global tests such as Simes inequality or Fisher combinations. We will illustrate these methods using a data set NAEP taken from \cite{Benjamini2000}
+
+<<options,echo=FALSE>>=
+options(width=60)
+@
+
+<<NAEP>>=
+library(cherry)
+data(NAEP)
+@
+
+These are p-values for 34 null hypotheses for 34 American states. In each state, a test was performed for the hypothesis that there was no change in the average eighth-grade mathematics achievement scores between 1990 and 1992. We can assume the data for different states, and therefore the p-values, to be independent. The $p$-values are sorted here, but that is not necessary for \Rpackage{cherry}.
+
+The fact that we have p-values means that the choice of a statistical test for the individual hypotheses has already been made. The only remaining choice is the test for intersection hypotheses. Two options to test these intersection hypotheses are presented in this section.
+
+
+\subsection{Fisher combinations}
+
+Fisher combinations are based on the fact that if a p-value $p_i$ is under the null hypothesis, it is uniformly distributed (or stochastically smaller than that). Consequently, $-\log(p_i)$ is exponentially distributed with parameter $\lambda=1$, and $-2\log(p_i)$ is $\chi^2$ distributed with 2 degrees of freedom. If a number of $r$ $p$-values is independent, then $-2\sum_{i=1}^r \log(p_i)$ is $\chi^2$ distributed with $2r$ degrees of freedom. This suggests the Fisher combination test, a test for intersection hypotheses based on negative sums of logarithms of $p$-values that uses critical values from a $\chi^2$-distribution. This test is valid only when p-values for hypotheses that are under the null are independent. Fisher combination tests are powerful for detecting the presence of many small effects, but not so powerful for detecting few larger ones. Functions in \Rpackage{cherry} that use this test are the \Rfunction{pickFisher} and \Rfunction{curveFisher} functions.
+
+Suppose the researcher has chosen Fisher combinations and, after looking at the NAEP data, picks the hypotheses HI, MN and IA, and wants to know how many correct rejections he or she would make when rejecting these null hypotheses. This can be found with
+
+<<pickFisher>>=
+pickFisher(NAEP, c("HI","MN","IA"))
+@
+
+The hypotheses are referred to by name in this function call, but they can be referred to by any other selection method method, such as a logical vector, index or negative index. We can conclude at the default 95\%\ confidence that among the hypotheses HI, MN and IA there are at least 2 false hypotheses and at most one true one.
+
+Leaving out the second argument, \Rfunarg{select}, means rejecting all 34 hypotheses. This gives us an upper confidence bound to the number of true hypotheses in the complete working collection
+
+<<pickFisher_all>>=
+pickFisher(NAEP)
+@
+
+There are at least 19 correct rejections, i.e.\ false null hypotheses, and at most 15 false rejections, i.e.\ true null hypotheses among the 34 hypotheses. The 95\%\ confidence set for the number of true null hypotheses among the 34 goes from 0 (lower bound) to 15 (upper bound), and consequently the same confidence set for the number of false hypothese from 19 to 34. For the selected set HI, MN and IA, the 95\%\ confidence set for the number of true hypotheses goes from 0 to 1. It is important to know (and central to the method underlying the \Rpackage{cherry} package) that all these confidence intervals are simultaneous. There is no need to correct for multiple testing when selecting the most interesting one from all these confidence intervals.
+
+Several options can be set in \Rfunction{pickFisher}. Setting the type I error rate \Rfunarg{alpha} (default 0.05) changes the confidence level of the statements made. Setting \Rfunarg{silent} to \Robject{TRUE} suppresses printing to the screen of the result. The \Rfunction{pickFisher} function's return value is the lower bound of the number of false null hypotheses, i.e.\ correct rejections.
+
+<<pickFisher_return>>=
+res <- pickFisher(NAEP, silent=TRUE)
+res
+@
+
+The \Rfunction{curveFisher} function can give some additional information over \Rfunction{pickFisher}. Called without further arguments, the function returns lower bounds for the number of false null hypotheses, like \Rfunction{pickFisher}, but simultaneously for selecting the hypotheses with the smallest 1,2,3,\ldots, $p$-values. The results are displayed in a graph unless the \Rfunarg{plot} argument is set to \Robject{FALSE}. From these results, we see with 95\%\ confidence that 19 false null hypotheses are are present among all 34 hypotheses, as we saw before, but also that these 19 false null hypotheses must be among the 25 hypotheses with smallest $p$-values.
+
+<<curveFisher>>=
+res <- curveFisher(NAEP)
+res
+@
+
+\begin{figure}[!ht]
+<<curveFisher_fig, fig=TRUE>>=
+curveFisher(NAEP)
+@
+\end{figure}
+
+The curveFisher function may be further tailored. The \Rfunarg{select} argument can be used to consider only a subset of the hypotheses, and the function will return the number of false null hypotheses among the 1,2,\ldots smallest $p$-values in the selected set. Alternatively, the \Rfunarg{order} argument can be used to set the order in which hypotheses should be rejected, rather than taking the order of increasing $p$-values. Compare
+
+<<curveFisher_order>>=
+curveFisher(NAEP, select=c(8,3,4,2), plot=FALSE)
+curveFisher(NAEP, order=c(8,3,4,2), plot=FALSE)
+@
+
+Here, the first call uses the rejection order NC, HI, MN, TX, determined by the $p$-values; the second uses the rejection order TX, HI, MN, NC, given by the input. We interpret the second result as follows. Choosing TX only we have a result of 0, which means that we do not have 95\%\ confidence that TX corresponds to a false null hypothesis. The second result is 1, which means that choosing both TX and HI, we have detected at least one false null hypothesis with 95\%\ confidence. The third result, 2, refers too rejection of TX, HI and MN, the fourth result to the collection of all four hypotheses.
+
+
+
+\subsection{The Simes inequality}
+
+The Simes inequality says that for a sequence of ordered $p$-values $p_{(1)}, \ldots, p_{(r)}$, under the null hypothesis we have $p_{(i)} \geq i\alpha/r$ simultaneously for all $i$ with probability at least $1-\alpha$. This inequality holds if p-values are independent, as shown by Simes, but also under some forms of positive correlation, as shown by \cite{Sarkar1997}. Simes' inequality suggests Simes' test, a test that rejects an intersection hypothesis of $r$ hypotheses if either the smallest $p$-value is smaller than $\alpha/r$ or the second smallest is smaller than $2\alpha/r$, or \ldots, or the largest p-value is smaller than $r\alpha/r=\alpha$. This test can be used as a local test in the \Rpackage{cherry} package. It is valid if $p$-values of true null hypotheses are always either independent or positively correlated. An alternative, more conservative test was formulated by Hommel; this test is valid whatever the distribution of the $p$-values.
+
+The functions \Rfunction{pickSimes} and \Rfunction{curveSimes} work in exactly the same way as \Rfunction{pickFisher} and \Rfunction{curveFisher} above, and they use the same options and arguments.
+
+<<pickSimes>>=
+pickSimes(NAEP, c("HI","MN","IA"))
+curveSimes(NAEP, plot=FALSE)
+@
+
+Comparing these results with the ones obtained for the Fisher combinations above, we see that the Simes test allows fewer rejections. This is not generally true, and Simes may be more powerful in other data sets. In general, Fisher combinations can be said to have more power if there are many small effect sizes, whereas Simes has more power in the presence of a few stronger effects.
+
+The more conservative Hommel variant that makes no assumptions on the $p$-value distribution can be obtained by setting \Rfunarg{hommel=TRUE}. This variant is more conservative than one based on the regular Simes test.
+
+<<hommel>>=
+pickSimes(NAEP, c("HI","MN","IA"), hommel=TRUE)
+curveSimes(NAEP, plot=FALSE, hommel=TRUE)
+@
+
+
+\section{The general method} \label{full}
+
+There are many more possibilities than Fisher combinations or Simes inequality to make local tests. The \Rfunction{closed} function and its derivatives in \Rpackage{cherry} allow users to work with any type of local test. When working with such a user-defined local test, the output possibilities are greater than with the simple \Rfunction{pickFisher} and \Rfunction{curveFisher} functions above.
+
+\subsection{Defining a local test}
+
+We first illustrate the general method with the same local test as was used there: the Fisher combinations.
+
+To illustrate these data we cannot take the NAEP data, as for 34 hypotheses the calculations will take too long. In fact, the code will not run for a collection of more than 31 hypotheses. We shall illustrate the general approach with a very small data set of 4 $p$-values, taken from \cite{Huang2007}, but we take them out of the context they were presented in in that paper.
+
+<<hsu>>=
+ps <- c(A = 0.051, B = 0.064, C = 0.097, D = 0.108)
+@
+
+To define a local test, we must create an \Robject{R} function, such as the following
+
+<<fisher_local>>=
+mytest <- function(hypotheses) {
+  p.vals <- ps[hypotheses]
+  m <- length(p.vals)
+  statistic <- -2 * sum(log(p.vals))
+  p.out <- pchisq(statistic, df=2*m, lower.tail=FALSE)
+  return(p.out)
+}
+@
+
+This function takes as input the names of the hypotheses that the intersection hypothesis is an intersection of, and returns a p-value, as calculated by the Fisher combinations test. Note that the function references the \Robject{ps} data we've just created. We can now call our test with
+
+<<fisher_local_examples>>=
+mytest("A")
+mytest(c("B","C","D"))
+mytest(names(ps))
+@
+
+Note that calling \Robject{mytest} on a single hypothesis name just returns the $p$-value of that hypothesis.
+
+A user can define their own favorite local test in exactly this way, by creating an R function that takes a vector of hypothesis names as input and gives a valid p-value for the corresponding intersection null hypothesis as output.
+
+The \Robject{mytest} function used $p$-values as input data. This is not necessary or even typical. As a second example, we present a function for a local test based on the F-test in a multiple linear regression using the \Robject{LifeCycleSavings} example data. The null hypothesis of this test is the hypothesis that the covariates in its \Rfunarg{hyps} argument all have regression coefficient zero in the multiple regression model fitted in \Robject{fullfit} below.
+
+<<Ftest>>=
+hypotheses <- c("pop15", "pop75", "dpi", "ddpi")
+fullfit <- lm(sr~., data=LifeCycleSavings)
+myFtest <- function(hyps) {
+  others <- setdiff(hypotheses, hyps)
+  form <- formula(paste(c("sr~",  paste(c("1", others), collapse="+"))))
+  anov <- anova(lm(form, data=LifeCycleSavings), fullfit, test="F")
+  pvalue <- anov$"Pr("[2]        # NB replace Pr by P for for R < 2.14.0
+  return(pvalue)
+}
+myFtest(c("pop15", "pop75"))
+@
+
+
+\subsection{Performing closed testing}
+
+Next, we can perform the closed testing procedure using this definition of the local test. This is done using the function \Rfunction{closed}, as follows
+
+<<closed>>=
+ct <- closed(mytest, names(ps))
+@
+
+Note that there is no need anymore to specify the data set that is used, because the reference to the data set is contained in the definition of \Robject{mytest}. The calculations can take a large amount of time, especially if the number of hypotheses is large.
+
+By default, all tests are performed at level \Rfunarg{alpha = 0.05} and only rejection or acceptance of hypotheses is stored, not adjusted p-values. It is possible to change the \Rfunarg{alpha} argument to a different value, or to do the calculations using adjusted $p$-values so that the choice of the significance level may be postponed. This will be explained below in Section \ref{adjusted}.
+
+Using the \Robject{ct} object created by the call to \Rfunction{closed} we can now perform analysis by asking for the number of true and false hypotheses among certain sets of hypotheses of interest. Just displaying the object,
+
+<<closed_show>>=
+ct
+@
+
+\noindent gives a lower confidence bound on the number of false hypotheses among the collection of all four tested hypotheses. We conclude that there are at least two false null hypotheses among the four tested ones. If we are interested in a subset of hypotheses, we can use the \Rfunction{pick} function.
+
+<<pick>>=
+pick(ct, c("A", "B"))
+pick(ct, c("C", "D"))
+@
+
+This gives us confidence limits for the number of false hypotheses in each chosen subset. The \Rfunction{pick} function returns the lower bound on the number of false hypotheses. It also displays the information on the screen, but this can be switched off if desired by setting the \Rfunarg{silent} argument to \Robject{TRUE}. If the second argument to \Rfunction{pick} is left out, it is assumed that the set of all hypotheses is meant. To get back the names of the hypotheses, type
+
+<<hypotheses>>=
+hypotheses(ct)
+@
+
+From the results of \Rfunction{pick} above we see that there is evidence for one false hypothesis among A and B, but no such evidence among C and D. This seems to contradict the earlier statement that there was evidence for at least two false null hypotheses among the total set of A, B, C and D. However, this is only an apparent contradiction: the amount of evidence for a second false null hypothesis is not sufficient in the observed data of A and B alone, nor in the data of C and D alone, but the combined evidence of the data from all four hypotheses is sufficient.
+
+Just like \Rfunction{pickSimes} and \Rfunction{pickFisher}, \Rfunction{pick} returns the lower confidence bound for the number of false null hypotheses as a number.
+
+<<pick_output>>=
+res <- pick(ct, c("C", "D"), silent=TRUE)
+res
+@
+
+
+\subsection{Defining rejections and the shortlist}
+
+The \Rfunction{pick} function allows users to check out any desired set of hypotheses, but gives no guidance as to what sets of hypotheses to probe. Two other functions can help to see structure in the results of the closed testing procedure.
+
+The first of these is the \Rfunction{defining} function, which calculates the \emph{defining rejections}. The defining rejections are a collection of sets of hypotheses with the property that for each set in the collection we can be confident that it contains at least one false null hypothesis. The collection of defining hypotheses is minimal in the sense that there are no smaller sets for which the same statement holds. In our \Robject{ct} object, the defining rejections are
+
+<<defining>>=
+defining(ct)
+@
+
+For each of the listed defining sets, we can conclude that they contain at least one false hypothesis. For example, at least one of A and B must be false, but also at least one of A and C, and at least one of B and C. If any of the defining sets is a singleton, we can confidently conclude that the corresponding hypothesis is a false one.
+
+The dual of the defining sets is the \emph{shortlist}, introduced by \cite{Meinshausen2011}. Just like the defining sets, the shortlist is a collection of sets of hypotheses, but for the shortlist collection we can make the statement that at least one of the sets in the collection contains only false hypotheses. In the example,
+
+<<shortlist>>=
+shortlist(ct)
+@
+
+\noindent the shortlist contains three sets. We conclude that either both hypotheses A and B are false, or all three hypotheses A and C and D or all three hypotheses B and C and D. Just as with the defining rejections, the shortlist only gives a minimum at the chosen significance level. The possibility that all four hypotheses are false, for example, is equally compatible with the results of the closed testing procedure. However, the true set must contain at least one of the shortlist sets completely.
+
+\subsection{Adjusted $p$-values} \label{adjusted}
+
+Earlier calculations were all done at a significance level \Rfunarg{alpha} of 0.05, and the results only used the rejection status of hypotheses. There is additional information is the $p$-values, however, and the \Rfunction{closed} function may also be used with adjusted $p$-values rather than a hard rejection yes/no. By definition, an adjusted $p$-value is the smallest alpha-level at which a certain hypothesis can be rejected in the multiple testing procedure. Using adjusted $p$-values is comparable to not setting the alpha level in advance, but simultaneously doing the same test procedure at all alpha levels. To use adjusted $p$-values, use
+
+<<closed_adjusted>>=
+cta <- closed(mytest, names(ps), alpha = NA)
+@
+
+Calculation times based on adjusted $p$-values can be substantially longer because more tests need to be calculated. If the user is not interested in adjusted p-values above a certain threshold, say 0.1, an alternative call is
+
+<<closed_adjusted2>>=
+ctb <- closed(mytest, names(ps), alpha = 0.1, adjust = TRUE)
+@
+
+\noindent In this case, all adjusted $p$-values greater than the chosen threshold will be set to 1.
+
+The \Rfunction{pick} function works slightly differently if adjusted $p$-values were used. It simultaneously presents results for all levels of alpha.
+
+<<pick_adjusted>>=
+pick(cta)
+@
+
+The results should be read as follows. Up to $\alpha=0.0084$ we only have the trivial result that the number of true hypotheses is $\leq4$. From $\alpha=0.0084$ to $\alpha=0.023$ we get the result that at least one hypothesis is false; from $\alpha=0.023$ to $\alpha=0.058$, we get at least false two hypotheses, etcetera. In terms of adjusted $p$-values, the adjusted $p$-value for the statement that there are ate least two false null hypotheses among the four can be read off as 0.02347. The confidence column is simply $1-\alpha$.
+
+To extract adjusted $p$-values directly, there is the \Rfunction{adjusted} function. Calling \Rfunction{adjusted} on a set of hypotheses without extra arguments returns the adjusted $p$-value of the corresponding intersection hypothesis. An additional third argument \Rfunarg{n} can be given to get the adjusted $p$-value for making the statement that at least $n+1$ false null hypotheses occur in the chosen set, i.e.\ corresponding to the null hypothesis that at most $n$ false null hypotheses are present.
+
+<<adjusted_function>>=
+adjusted(cta, c("A", "B", "C"))
+adjusted(cta, c("A", "B", "C"), n=1)
+@
+
+\noindent We conclude that the compound hypothesis that no hypothesis among A, B and C is false, and the compound hypothesis that at most one among A, B, and C is false are both rejected at $\alpha=0.05$, with adjusted $p$-values 0.013 and 0.038, respectively.
+
+The \Rfunction{pick} function has one other additional feature in that the number in the table can be visualized in a plot. Setting \Rfunarg{plot = TRUE} in \Rfunction{pick} results in a plot such as in Figure \ref{confidence}. In this plot, the adjusted p-values can be read off as tail probabilities in the plotted ``distribution''. These values are displayed at the top of the plot. The \Rfunarg{plot} argument is ignored if adjusted $p$-values were not calculated.
+
+\begin{figure}[!ht]
+<<confidence_distribution, fig=TRUE, results=hide>>=
+pick(cta, names(ps), plot=TRUE)
+@
+\caption{\Robject{pick(cta, names(ps), plot=TRUE)}} \label{confidence}
+\end{figure}
+
+The \Rfunction{defining} and \Rfunction{shortlist} functions can be used for objects with adjusted $p$-values, but a specific value of alpha must be specified.
+
+<<defining_adjusted>>=
+shortlist(cta, alpha=0.05)
+@
+
+It is also possible to set the alpha level to be used in such cases in advance with the \Rfunction{alpha} function. Setting
+
+<<alpha>>=
+alpha(cta) <- 0.05
+@
+
+will cause functions such as \Rfunction{pick}, \Rfunction{defining}, \Rfunction{shortlist} to work as if alpha = 0.05 was set in advance. The object can be reset to adjusted p-values with
+
+<<alphaNA>>=
+alpha(cta) <- NA
+@
+
+\bibliography{cherrypackage}
+
+\end{document}
+
+
+
+

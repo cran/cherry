@@ -1,6 +1,13 @@
+0.2-6
+- added a vignette
+- changed output of pick, pickFisher and pickSimes to return the number of false rather than true nulls
+- textual changes to NAEP.Rd
+- repaired bugs giving an ugly plot in pick with plot=TRUE
+
 0.1-5
-- added alpha=NA option to closed() to calculate adjusted p-values
-- changed pick() to give fiducial disstribution in case alpha=NA
+- added option to closed() to calculate adjusted p-values
+- changed pick() to give fiducial disstribution in case of adjusted p-values
+- added shortlist() method
 - fixed bug where pick() returned inf when it should return m (the number of hypotheses).
 - simplified change to Pr(>|Chi|)
 - added input check on invalid selection to pickFisher()

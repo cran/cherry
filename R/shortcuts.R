@@ -9,16 +9,16 @@ pickFisher <- function(p, select = seq_along(p), alpha=0.05, silent=FALSE) {
   cum.r <- cumsum(lrej)
   cum.nr <- c(0, cumsum(lnr))
   crit.val <- sapply(1:length(cum.r), function(st) {
-    max(qchisq(1-alpha, df=2*(0:(length(cum.nr)-1) + st), lower=TRUE) - cum.nr)
+    max(qchisq(1-alpha, df=2*(0:(length(cum.nr)-1) + st), lower.tail=TRUE) - cum.nr)
   })
   out <- max(c(0,which(cum.r <= crit.val)))
   if (!silent) {
     cat("Rejected ", length(rej), " hypotheses at confidence level ", 1-alpha, ".\n", sep="")
     cat("Correct rejections >= ", length(rej)-out, "; ", sep="")
     cat("False rejections <= ", out, ".\n", sep="")
-    invisible(out)
+    invisible(length(rej)-out)
   } else
-    out
+    length(rej)-out
 }
 
 
@@ -29,15 +29,15 @@ curveFisher <- function(p, select = seq_along(p), order, alpha=0.05, plot = TRUE
   if (ordered & selected) 
     stop("please provide either select or order, but not both")
   if (selected)
-    ranks <- sort(rank(p, ties="first")[select])
+    ranks <- sort(rank(p, ties.method="first")[select])
   else
-    ranks <- rank(p, ties="first")[order]
+    ranks <- rank(p, ties.method="first")[order]
   if (length(ranks)==0 || any(is.na(ranks)))
     stop("invalid selection or NA in p-values")
   others <- setdiff(length(p):1, ranks)
   lpv <- -2*log(sort(p))
   res <- numeric(length(ranks))
-  chisqs <- qchisq(1-alpha, df=2*1:length(lpv), lower=T)
+  chisqs <- qchisq(1-alpha, df=2*1:length(lpv), lower.tail=TRUE)
   st <- 1
   for (ed in 1:length(ranks)) {
     if (selected)
@@ -68,7 +68,7 @@ curveFisher <- function(p, select = seq_along(p), order, alpha=0.05, plot = TRUE
 
 pickSimes <- function(p, select = seq_along(p), alpha=0.05, hommel=FALSE, silent=FALSE) {
 
-  ranks <- sort(rank(p, ties="first")[select])
+  ranks <- sort(rank(p, ties.method="first")[select])
   p <- sort(p)
   others <- setdiff(length(p):1, ranks)
   st <- 1
@@ -108,9 +108,9 @@ pickSimes <- function(p, select = seq_along(p), alpha=0.05, hommel=FALSE, silent
     cat("Rejected ", length(ranks), " hypotheses. At confidence level ", 1-alpha, ":\n", sep="")
     cat("Correct rejections >= ", length(ranks)-out, "; ", sep="")
     cat("False rejections <= ", out, ".\n", sep="")
-    invisible(out)
+    invisible(length(ranks)-out)
   } else
-    out
+    length(ranks)-out
 }
 
 
@@ -121,10 +121,10 @@ curveSimes <- function(p, select = seq_along(p), order, alpha=0.05, hommel=FALSE
   if (ordered & selected) 
     stop("please provide either select or order, but not both")
   if (selected) {
-    ranks <- sort(rank(p, ties="first")[select])
+    ranks <- sort(rank(p, ties.method="first")[select])
     endpoint <- length(ranks) - pickSimes(p, select, alpha, hommel, silent=TRUE)
   } else {
-    ranks <- rank(p, ties="first")[order]
+    ranks <- rank(p, ties.method="first")[order]
     endpoint <- length(ranks) - pickSimes(p, order, alpha, hommel, silent=TRUE)
   }
   if (length(ranks)==0 || any(is.na(ranks)))

@@ -42,7 +42,7 @@
 
   # What is the adjusted p-value of the intersection of the following hypotheses?
   adjusted(cl, c("ht", "lwt", "smoke", "ui"))
-  
+
   # From what confidence level would we conclude that more than 2 of the following hypotheses would be false?
   adjusted(cl, c("ht", "lwt", "smoke", "ui"), n=2)
 }

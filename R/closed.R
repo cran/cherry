@@ -38,7 +38,7 @@ closed <- function(test, hypotheses, alpha = 0.05, adjust = FALSE) {
   N <- length(hypotheses)
   Nmax <- log2(.Machine$integer.max+1)
   if (N > Nmax)
-    stop("no more than", Nmax, "hypotheses supported in full closed testing.\n Use a shortcut-based test.")
+    stop("no more than ", Nmax, " hypotheses supported in full closed testing.\n Use a shortcut-based test.")
   closure <- 1:(2^N-1)
   base <- 2^(1:N-1)
 
@@ -182,8 +182,8 @@ adjusted <- function(closure, reject, n = 0) {
   M <- length(reject)
   reject <- sum(2^(reject-1))
   
-  if (n>=M)
-      stop("value of n equal to or larger than number of rejected hypotheses")
+  if (n>M)
+      stop("value of n larger than number of rejected hypotheses")
   
   clos <- 1:(2^N-1)
   base <- 2^(1:N-1)
@@ -199,6 +199,7 @@ pick <- function(closure, reject, alpha, silent = FALSE, plot = FALSE) {
 
   # preparation: create closure
   N <- length(closure@hypotheses)
+  if (missing(reject)) reject <- closure@hypotheses 
   reject <- which(closure@hypotheses %in% reject)
   M <- length(reject)
   clos <- 1:(2^N-1)
@@ -226,9 +227,9 @@ pick <- function(closure, reject, alpha, silent = FALSE, plot = FALSE) {
       cat("At confidence level ", 1-closure@alpha, ": ", sep="")
       cat("Correct rejections >= ", length(reject)-out, "; ", sep="")
       cat("False rejections <= ", out, ".\n", sep="")
-      return(invisible(out))
+      return(invisible(length(reject)-out))
     } else
-      return(out)
+      return(length(reject)-out)
   } else {
     # adjusted p variant
     lengths <- lapply(base, function(bs) bitAnd(interest, bs) != 0)
@@ -240,9 +241,9 @@ pick <- function(closure, reject, alpha, silent = FALSE, plot = FALSE) {
                         "true<=" = M:1-1,
                         "false>=" = 1:M, check.names=F, row.names=1:M)
     if (plot) {
-      bp <- barplot(diffs, xlab="False rejections", ylab = "Confidence probability mass function", ylim=c(0,max(out)*1.2))
+      bp <- barplot(diffs, xlab="True hypotheses", ylab = "Confidence probability mass function", ylim=c(0,max(diffs)*1.1))
       mids <- (bp[-1] + bp[-length(bp)])/2
-      text(mids, max(out), round(cumsum(out)[-length(out)],3), pos=3)
+      text(mids, max(diffs), round(1-cumsum(diffs)[-length(diffs)],3), pos=3)
     }
     out
   }
@@ -288,7 +289,28 @@ pick <- function(closure, reject, alpha, silent = FALSE, plot = FALSE) {
 # reverses defining hypotheses from (A or B or ...) and (C or D or ...) and ...
 # to (A and C and ...) or (B and C and ...) or ...
 # result is still in bit-form, to be transformed with .num2names()
+# reverses defining hypotheses from (A or B or ...) and (C or D or ...) and ...
+# to (A and C and ...) or (B and C and ...) or ...
+# result is still in bit-form, to be transformed with .num2names()
 .shortlist <- function(cl) {
+  N <- length(cl@hypotheses)
+  M <- length(cl@defining)
+  base <- 2^(1:N-1)
+  res <- 0
+  for (i in 1:M) {
+    whichs <- which(bitAnd(cl@defining[i], base) != 0)
+    comb <- outer(res, 2^(whichs-1), bitOr)
+    res <- unique(c(comb))
+  }
+  isAncestor <- function(x,y) { # is x an ancestor of y?
+    bitOr(x,y) == x
+  }
+  ancs <- outer(res, res, isAncestor)
+  diag(ancs) <- FALSE
+  res[!apply(ancs, 1, any)]
+}
+
+.shortlist_old <- function(cl) {
   N <- length(cl@hypotheses)
   M <- length(cl@defining)
   base <- 2^(1:N-1)
@@ -307,4 +329,5 @@ pick <- function(closure, reject, alpha, silent = FALSE, plot = FALSE) {
   diag(ancs) <- FALSE
   ands[!apply(ancs, 1, any)]
 }
+
 

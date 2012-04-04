@@ -1,6 +1,6 @@
 Package: cherry
-Version: 0.1-5
-Date: 2012-01-23
+Version: 0.2-6
+Date: 2012-04-04
 Title: Multiple testing methods for exploratory research
 Author: Jelle Goeman <j.j.goeman@lumc.nl>
 Maintainer: Jelle Goeman <j.j.goeman@lumc.nl>
@@ -19,6 +19,6 @@ License: GPL (>= 2)
 Collate: closed.R shortcuts.R
 LazyLoad: yes
 URL: http://www.msbi.nl/goeman
-Packaged: 2012-01-23 12:13:45 UTC; jjgoeman
+Packaged: 2012-04-13 14:14:11 UTC; jjgoeman
 Repository: CRAN
-Date/Publication: 2012-01-23 12:53:42
+Date/Publication: 2012-04-13 20:28:19

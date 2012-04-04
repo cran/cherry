@@ -1,0 +1,30 @@
+citHeader("To cite the penalized package in publications use:")
+
+citEntry(entry="Manual",
+    title = "Cherry: Multiple testing methods for exploratory research",
+    author = personList(as.person("J. J. Goeman")),
+    year = substring(packageDescription("cherry")$Date,1,4),
+    note = paste("R package version", packageDescription("cherry")$version),
+    textVersion =
+      paste("Jelle J. Goeman (",
+        substring(packageDescription("cherry")$Date,1,4),
+        ") Cherry ",
+        "R package, version ", packageDescription("cherry")$Version,
+        ".", sep = "")
+)
+
+citEntry(entry="Article",
+    title = "Multiple testing for exploratory research",
+    author = personList(as.person("J. J. Goeman"), as.person("A. Solari")),
+    journal = "Statistical Science",
+    number = 26,
+    pages =  584-597, 
+    year = 2011,
+    textVersion =
+      paste("Jelle J. Goeman and Aldo Solari (2011)",
+		"Multiple testing for exploratory research,",
+        	"Statistical Science, 26 (4) 584-597.")
+)
+
+
+
