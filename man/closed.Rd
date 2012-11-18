@@ -25,7 +25,9 @@ It is possible to set both \code{adjust} to \code{TRUE} and specify \code{alpha}
 
 \author{Jelle Goeman: \email{j.j.goeman@lumc.nl}}
 
-
+\references{
+Goeman and Solari (2011) Statistical Science 26 (4) 584-597.
+}
 
 \examples{
   # Example: the birthwt data set from the MASS library
@@ -46,7 +48,7 @@ It is possible to set both \code{adjust} to \code{TRUE} and specify \code{alpha}
 
   # perform the closed testing
   cl <- closed(mytest, hypotheses)
-  summary(cl)
+  cl
 
   # how many variables among a chosen set are associated with the response?
   pick(cl, c("ht", "lwt", "smoke", "ui"))

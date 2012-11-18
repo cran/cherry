@@ -2,4 +2,4 @@ exportClasses(closure)
 
 exportMethods(show, alpha, "alpha<-", defining, hypotheses, shortlist)
 
-export(closed, pick, adjusted, pickFisher, pickSimes, curveFisher, curveSimes)
+export(closed, pick, adjusted, pickFisher, pickSimes, curveFisher, curveSimes, pickMeinshausen, curveMeinshausen)

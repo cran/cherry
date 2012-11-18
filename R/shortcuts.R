@@ -1,5 +1,6 @@
 pickFisher <- function(p, select = seq_along(p), alpha=0.05, silent=FALSE) {
 
+  if (any(is.na(p))) stop("missing values in input p-values")
   rej <- p[select]
   if (any(is.na(rej))) stop("invalid selection or NA in p-values")
   nr <- setdiff(p, rej)
@@ -24,6 +25,7 @@ pickFisher <- function(p, select = seq_along(p), alpha=0.05, silent=FALSE) {
 
 curveFisher <- function(p, select = seq_along(p), order, alpha=0.05, plot = TRUE) {
 
+  if (any(is.na(p))) stop("missing values in input p-values")
   selected <- !missing(select) || missing(order)
   ordered <- !missing(order)
   if (ordered & selected) 
@@ -68,6 +70,7 @@ curveFisher <- function(p, select = seq_along(p), order, alpha=0.05, plot = TRUE
 
 pickSimes <- function(p, select = seq_along(p), alpha=0.05, hommel=FALSE, silent=FALSE) {
 
+  if (any(is.na(p))) stop("missing values in input p-values")
   ranks <- sort(rank(p, ties.method="first")[select])
   p <- sort(p)
   others <- setdiff(length(p):1, ranks)
@@ -116,16 +119,17 @@ pickSimes <- function(p, select = seq_along(p), alpha=0.05, hommel=FALSE, silent
 
 curveSimes <- function(p, select = seq_along(p), order, alpha=0.05, hommel=FALSE, plot = TRUE) {
 
+  if (any(is.na(p))) stop("missing values in input p-values")
   selected <- !missing(select) || missing(order)
   ordered <- !missing(order)
   if (ordered & selected) 
     stop("please provide either select or order, but not both")
   if (selected) {
     ranks <- sort(rank(p, ties.method="first")[select])
-    endpoint <- length(ranks) - pickSimes(p, select, alpha, hommel, silent=TRUE)
+    endpoint <- pickSimes(p, select, alpha, hommel, silent=TRUE)
   } else {
     ranks <- rank(p, ties.method="first")[order]
-    endpoint <- length(ranks) - pickSimes(p, order, alpha, hommel, silent=TRUE)
+    endpoint <- pickSimes(p, order, alpha, hommel, silent=TRUE)
   }
   if (length(ranks)==0 || any(is.na(ranks)))
     stop("invalid selection or NA in p-values")

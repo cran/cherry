@@ -104,8 +104,8 @@ setMethod("show", "closure", function(object) {
   if (!is.na(object@alpha)) {
     cat("At confidence level ", 1-object@alpha, ": ", sep="")
     res <- pick(object, object@hypotheses, silent=TRUE)
-    cat("False hypotheses >= ", length(object@hypotheses) - res, "; ", sep="")
-    cat("True hypotheses <= ", res, ".\n", sep="")
+    cat("False hypotheses >= ", res, "; ", sep="")
+    cat("True hypotheses <= ", length(object@hypotheses) - res, ".\n", sep="")
   }
   object
 })

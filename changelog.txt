@@ -1,3 +1,9 @@
+0.3-7
+- fixed bug in curveSimes somtimes giving too low values in the presence of selection
+- added check on NA values in curve/pick Simes/Fisher. 
+- added pickMeinshausen and curveMeinshausen.
+- fixed a bug in the show function of closure objects 
+
 0.2-6
 - added a vignette
 - changed output of pick, pickFisher and pickSimes to return the number of false rather than true nulls
