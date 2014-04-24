@@ -1,9 +1,9 @@
 Package: cherry
-Version: 0.3-8
-Date: 2012-11-18
+Version: 0.4-9
+Date: 2014-04-24
 Title: Multiple testing methods for exploratory research
-Author: Jelle Goeman, Aldo Solari
-Maintainer: Jelle Goeman <j.j.goeman@lumc.nl>
+Author: Jelle Goeman, Aldo Solari, Rosa Meijer
+Maintainer: Jelle Goeman <jelle.goeman@radboudumc.nl>
 Depends: methods, bitops
 Imports:
 Suggests: MASS, multtest
@@ -16,9 +16,10 @@ Description: This package implements a class of multiple testing
         confidence bounds are simultaneous for all possible rejected
         sets, the validity is not compromised by post hoc selection.
 License: GPL (>= 2)
-Collate: closed.R shortcuts.R Meinshausen.R
+Collate: closed.R shortcuts.R Meinshausen.R regionmethod.R
 LazyLoad: yes
 URL: http://www.msbi.nl/goeman
-Packaged: 2012-11-19 08:42:23 UTC; jjgoeman
+Packaged: 2014-04-26 13:26:29 UTC; Jelle
 Repository: CRAN
-Date/Publication: 2012-11-19 09:02:17
+Date/Publication: 2014-04-27 14:57:10
+NeedsCompilation: no

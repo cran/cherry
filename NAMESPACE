@@ -1,5 +1,9 @@
-exportClasses(closure)
+import(methods)
 
-exportMethods(show, alpha, "alpha<-", defining, hypotheses, shortlist)
+import(bitops)
 
-export(closed, pick, adjusted, pickFisher, pickSimes, curveFisher, curveSimes, pickMeinshausen, curveMeinshausen)
+exportClasses(closure, region)
+
+exportMethods(summary, show, alpha, "alpha<-", defining, hypotheses, shortlist, pvalue, implications)
+
+export(closed, pick, adjusted, pickFisher, pickSimes, curveFisher, curveSimes, pickMeinshausen, curveMeinshausen, regionpick, regionmethod, regionplot, regionplot2)

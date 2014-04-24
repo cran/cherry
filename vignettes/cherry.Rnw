@@ -11,17 +11,18 @@
 \newcommand{\Rfunction}[1]{{\texttt{#1}}}
 \newcommand{\Rpackage}[1]{{\textit{#1}}}
 \newcommand{\Rclass}[1]{{\textit{#1}}}
-\newcommand{\Rfunarg}[1]{{\textit{#1}}}
+\newcommand{\Rfunarg}[1]{{\textit{#1}}} %texttt? 
 \sloppy
 
 \title{Using the \Rpackage{cherry} \texttt{R} package}
 
-\author{Jelle Goeman \and Aldo Solari}
+\author{Jelle Goeman \and Aldo Solari \and Rosa Meijer}
 
 \date{Package version \Sexpr{packageDescription("cherry")$Version}\\Date \Sexpr{packageDescription("cherry")$Date}}
 
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 \maketitle \tableofcontents \newpage
 
@@ -320,6 +321,108 @@ will cause functions such as \Rfunction{pick}, \Rfunction{defining}, \Rfunction{
 <<alphaNA>>=
 alpha(cta) <- NA
 @
+
+\section{Region procedure}
+
+In addition to the closed testing procedure, there is another multiple testing method implemented in the \Rpackage{cherry} package. The region procedure is a a multiple testing method for hypotheses that are ordered in space or time. Given such hypotheses, the elementary hypotheses as well as regions of consecutive hypotheses are of interest. Each region hypothesis will be denoted by $H_{ij}$, where $i$ and $j$ specify the left and right boundary of the corresponding region. The region procedure is a procedure that starts with testing the global null-hypothesis and when this hypothesis can be rejected it continues with further specifying the exact location/locations of the effect present. In every step of the procedure, only those hypotheses $H_{ij}$ are tested for which all $H_{kl}$ with $k\leq i \leq j \leq l$ are already rejected.
+
+
+\subsection{Using the region procedure}
+
+To perform the region procedure on a given dataset, we can use the function \Rfunction{regionmethod}. What is needed for the function to work is a local test that has a left and rightbound as input and returns a $p$-value for the corresponding region hypothesis, and a weight vector that indicates the weight each elementary hypothesis should receive. The length of this vector should equal the number of elementary hypotheses. 
+
+To illustrate the method, we first generate some data. Let us take a response vector $Y$ and a matrix $X$ of covariates that is generated in such a way that $Y$ is associated with certain regions of the covariates. 
+
+<<generatedata>>=
+set.seed(1)
+n=100
+p=20
+X <- matrix(rnorm(n*p),n,p)
+beta <- c(rep(0,2),rep(1,4),rep(0,2),rep(1,4),rep(0,2),
+          rep(1,4),rep(0,2))
+Y <- X %*% beta + rnorm(n)
+@
+
+$Y$ is a vector of length 100, whereas $X$ is a matrix of dimension $100\times 20$. Of the 20 covariates, only 12 covariates are associated with the response. They are organized in 3 groups of 4 covariates each. The intervals (3,6), (9,12) and (15,18) are associated with the response.  
+
+Furthermore, we have to specify a local test. We choose to work with an $F$-test, which can be defined in the following way: 
+
+<<Ftest>>=
+mytest <- function(left,right)
+{
+  X <- X[,(left:right),drop=FALSE]
+  lm.out <- lm(Y ~ X)
+  x <- summary(lm.out)
+  return(pf(x$fstatistic[1],x$fstatistic[2],x$fstatistic[3],
+            lower.tail=FALSE))  
+}
+@
+
+The region procedure can now be used on the design matrix $X$ to find which (regions of) covariates are associated with the following function call: 
+
+<<regionmethod>>=
+reg <- regionmethod(rep(1,p), mytest, all_pvalues=TRUE, isadjusted=TRUE)
+summary(reg)
+@
+
+Using the function \Rfunction{regionmethod} results in a \Robject{region} object. From this \Robject{region} object we can retrieve different information. By using the \Rfunction{show} or \Rfunction{summary} function, we can see how many of the region hypotheses could be rejected on the given $\alpha$-level as specified by the
+\Rfunarg{alpha\_max} argument, which is 0.05 by default. In our example, we see that 179 region hypotheses could be rejected (out of a total number of 210). All these regions can be summarized by the regions that could be rejected themselves, but for which all smaller regions they contain could not get rejected. We will call those smallest rejectable region "implications". 
+
+To get the implications from a \Robject{region} object, we can use the \Rfunction{implications}. This function requires a \Robject{region} object as argument, and has an optional argument \Rfunarg{alpha}. If \Rfunarg{alpha} is not specified, the implications corresponding to the argument \Rfunarg{alpha\_max}
+of the \Robject{region} object are calculated. In our example, the implications look like this: 
+
+<<implications>>=
+implications(reg)
+@
+
+Of these 7 implications, 6 correspond to an elementary hypothesis. Only the fifth implication corresponds to a region hypothesis with length larger than 1, namely to the region hypothesis of region (12,15).
+If we would want to have the implications corresponding to a different $\alpha$-level, we could either use the \Rfunction{regionmethod} function again and use a different value for \Rfunarg{alpha\_max}, or we could use our current \Robject{region} object and change the argument \Rfunarg{alpha} in the \Rfunction{implications} function. However, the second approach will only work if the value of \Rfunarg{alpha} is smaller than the value \Rfunarg{alpha\_max} that was used to make the \Robject{region} method. Furthermore, the \Rfunarg{all\_pvalues} as well as the \Rfunarg{isadjusted} argument in the call to the \Rfunction{regionmethod} function that was used to create the \Robject{region} object has to be set to \texttt{TRUE}. Only then, new implications can be computed. In our example, we set \Rfunarg{all\_pvalues}=\texttt{TRUE}, and we used the default value of 0.05 for \Rfunarg{alpha\_max}, so we can use the \Rfunction{implications} with \Rfunarg{alpha} set to all values smaller than 0.05. For example, if we want to know what implications we would have had if we controlled the FWER on 0.01, we can do this: 
+
+<<implications2>>=
+implications(reg, alpha=0.01)
+@
+On this lower $\alpha$-level, only 3 elementary hypotheses could be rejected.
+
+We see that implications come with a $p$-value, that can either be the true adjusted $p$-values (if the \Rfunarg{isadjusted} argument of the \Rfunction{regionmethod} was set to \texttt{TRUE}) or just the $\alpha$-level on which the FWER is controlled. To get $p$-values of rejected regions that do not correspond to an implication, we can use the \Rfunction{pvalue} method that is available for \Robject{region} objects. To be able to use this function, we again need to set the \Rfunarg{all\_pvalues} argument in the \Rfunction{regionmethod} function to \texttt{TRUE}. In our example, we used the right parameter settings, and we can thus ask for any adjusted $p$-value. We could for example get the adjusted $p$-value of the overall null-hypothesis, corresponding to region (1,20) as follows: 
+
+<<pvaluefunction>>=
+pvalue(reg,1,20)
+@
+
+Instead of summarizing the results of the region procedure by looking at the implications, we can also visualize our results by representing the region hypotheses by a graph and drawing this graph. There are two functions that can be used in order to do so, namely \Rfunction{regionplot} and \Rfunction{regionplot2}. The first function does not display the nodes and edges of the region graph separately, but draws a polygon that follows the original graph structure. The \Rfunction{regionplot2} function visualizes the full graph with its nodes and edges. 
+Although the information given by the list of all mplications and the plots are identical, at first sight the implications are more precise, but the plots give an immediate idea of which regions are interesting.\\
+
+For our example, the plots can be made in the following way: 
+<<regionplot, fig=TRUE>>=
+regionplot(reg)
+@
+
+and
+<<regionplot2, fig=TRUE>>=
+regionplot2(reg)
+@
+
+The plot functions do also have an optional \Rfunarg{alpha} argument, that can be used in the same way as described for the \Rfunction{implications} function. 
+
+\subsection{Confidence sets for the number of false hypotheses in a given set}
+
+Just as in the case of a closed testing procedure, while using the region procedure we are able to make simultaneous $100(1-\alpha)$\% confidence sets for the number of false (or true) rejection within a given set $S$ of elementary hypotheses.
+Given a \Robject{region} object, we can calculate the minimal number of false elementary hypotheses (i.e. true findings) in any given set of elementary hypotheses. This set has to be specified by a list of regions. For example, if we want to know how many false hypotheses there should at least be in the set of the first and last 5 elementary hypotheses from our 20 elementary hypotheses, we can specify a list as follows: list(c(1,5),c(16,20)) and use the function \Rfunction{regionpick} to calculate the lower confidence bound for the number of false hypotheses in this set: 
+
+<<regionpick>>=
+regionpick(reg, list(c(1,5),c(16,20)))
+@
+
+We can also look at just one set, for example the total set of elementary hypotheses: 
+
+<<regionpick>>=
+regionpick(reg, list(c(1,20)))
+@
+
+We see that at least 7 out of our 20 elementary hypotheses have to be false with probability $(1-\alpha)$, where $\alpha$ is still the $\alpha$ on which the FWER is controlled in the region procedure, which is 0.05 in our example. This is in agreement with the earlier shown implications, which showed that 6 elementary hypothesis were rejected and one larger region, in which at least one of the elementary hypotheses had to be false as well. 
+
+Again, there is an optional argument \Rfunarg{alpha} that can be used in the same way as in the other functions. 
+
 
 \bibliography{cherrypackage}
 
