@@ -1,3 +1,6 @@
+0.5-10
+- added functions corresponding to the DAG procedure (any- and all-parents variant)
+
 0.4-9
 - added functions corresponding to the region procedure
 

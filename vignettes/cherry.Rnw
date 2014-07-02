@@ -358,7 +358,7 @@ mytest <- function(left,right)
 }
 @
 
-The region procedure can now be used on the design matrix $X$ to find which (regions of) covariates are associated with the following function call: 
+The region procedure can now be used on the design matrix $X$ to find which (regions of) covariates are associated with the response by using the following function call: 
 
 <<regionmethod>>=
 reg <- regionmethod(rep(1,p), mytest, all_pvalues=TRUE, isadjusted=TRUE)
@@ -423,6 +423,106 @@ We see that at least 7 out of our 20 elementary hypotheses have to be false with
 
 Again, there is an optional argument \Rfunarg{alpha} that can be used in the same way as in the other functions. 
 
+
+
+\section{DAG multiple testing procedure}
+
+In addition to the closed testing and region procedure, there is another multiple testing method implemented in the \Rpackage{cherry} package. The DAG procedure is a multiple testing procedure that tests hypotheses that are structured in a Directed Acyclic Graph (DAG). Each node in the DAG will represent an hypothesis, whereas the edges represent the underlying subset relations.
+
+Our proposed method is a top-down method. This means that we start testing at the root(s) of the graph, so at a node without any parents. If the null-hypothesis corresponding to this root node can be rejected, we test the children of the root node, and we continue to test only those nodes that have \emph{at least one} of their parents or \emph{all} their parent nodes rejected. The procedure that tests a node when at least one of its parents is rejected is called the \emph{any}-parent variant, the procedure that tests a node only when all its parents are already rejected is called the \emph{all}-parent variant.
+
+Because the DAG is based on subset relations, each DAG has the so-called "oneway" property, which means that the falsehood of a node implies the falsehood of its parents. Some DAGs have, in addition to this property, a second property: namely that the falsehood of a node implies the falsehood of at least one of its children. If a DAG has this property, we say that the DAG has a "twoway" property. An example of such a DAG would be the DAG consisting of several gene sets and all the individual genes. In that case, each node will be the union of its children, which is a sufficient condition to have the twoway property. In DAGs with twoway logical relations, more powerful methods are possible. 
+
+\subsection{Using the DAG procedure}
+
+To perform the DAG procedure on a given dataset, we first have to create a DAG stucture. Given a collection of sets/hypotheses that we want to test, the corresponding DAG can be formed by using the function \Rfunction{construct}. This function needs a list of sets as input argument and returns a \Robject{DAGstructure} object. In the process, it is also checked whether all provided sets are unique, and if not, duplicates will be filtered out. A warning will be given in case this happens. To test the (unique) sets in the DAG structure, we can now use the function \Rfunction{DAGmethod}. This function needs the just created \Robject{DAGstructure} object as its first argument. Furthermore, what is needed for the function to work is a local test that has a set as input and returns a $p$-value for the corresponding hypothesis. Other options that can be specified are whether we want to have the any-parent or the all-parents variant, and whether we want to optimize our method further (in case we have a DAG with the twoway property). For the optimization step, we need a solver for (Integer) Linear Programs. A freely available R-package that does so is \Rpackage{lpSolve}. However, for large graphs it is often recommendable to choose some commercial software package. Our choice was to support the R-package \Rpackage{gurobi}. For academic use, this package is free, and can be found on the www.gurobi.com. If this package is not installed, we will automatically use \Rpackage{lpSolve} for all calculations. 
+
+
+To illustrate the method, we first generate some data. Let us take a response vector $Y$ of length 100, and a matrix $X$ of 4 covariates that is generated in such a way that $Y$ is associated with only the second and the third covariate. 
+
+<<generatedataDAG>>=
+set.seed(1)
+n=100
+p=4
+X <- matrix(rnorm(n*p),n,p)
+beta <- c(0,0.5,0.5,0)
+Y <- X %*% beta + rnorm(n)
+@
+
+Let us assume we are interested in testing all covariates separately, but also in the set of all covariates simultaneously (corresponding to the null-hypothesis that none of the covariates is associated with the response), the set of covariate 1 and 2 together, the set of covariate 2,3 and 4 togehter, and the set of covariate 2 and 3. This would result in the following list: 
+
+<<makesets>>=
+sets <- list(c(1,2,3,4), c(1,2), c(2,3,4), c(2,3), 1, 2, 3, 4)
+names(sets) <- c(1234, 12, 234, 23, 1, 2, 3, 4)
+@
+
+Based on these sets, we can make the corresponding graph structure by using the function \Rfunction{construct}: 
+
+<<makeDAG>>=
+struct <- construct(sets)
+@
+
+From this object we can check whether our desired DAG has twoway properties (which it should have, because all individual covariates are added): 
+
+<<twoway>>=
+istwoway(struct)
+@
+
+For the actual DAG multiple testing method to work, we additionally have to specify a local test. We choose to work with an $F$-test, which can be defined in the following way: 
+
+<<Ftest2>>=
+mytest <- function(set)
+{ 
+  X <- X[,set,drop=FALSE]
+  lm.out <- lm(Y ~ X)
+  x <- summary(lm.out)
+  return(pf(x$fstatistic[1],x$fstatistic[2],
+            x$fstatistic[3],lower.tail=FALSE))  
+}
+@
+
+The DAG procedure can now be used on the design matrix $X$ to find which (sets of) covariates are associated with the response by using the following function call: 
+
+<<DAGmethod>>=
+DAG <- DAGmethod(struct, mytest, isadjusted=TRUE)
+summary(DAG)
+@
+
+By default, the all-parents procedure is chosen and the (possible) twoway structure of the DAG is not used to further optimize the method. 
+To use the any-parents procedure or different optimization options, the arguments \Rfunarg{method} and \Rfunarg{optimization} can be set to different values than their default settings of respectively "all" and "none". 
+
+Using the function \Rfunction{DAGmethod} results in a \Robject{DAG} object. From this \Robject{DAG} object we can retrieve different information. By using the \Rfunction{show} or \Rfunction{summary} function, we can see how many of the hypotheses could be rejected on the given $\alpha$-level as specified by the \Rfunarg{alpha\_max} argument, which is 0.05 by default. In our example, we see that 6 sets could be rejected (out of a total number of 8). All these sets can be summarized by the smallest sets that could be rejected themselves, but for which all smaller sets they contain (i.e. their offspring) could not get rejected. We will call those smallest rejectable sets "implications". 
+
+To get the implications from a \Robject{DAG} object, we can use the \Rfunction{implications}. This function only requires a \Robject{DAG} object as argument. In our example, the implications look like this: 
+
+<<implicationsDAG>>=
+implications(DAG)
+@
+
+We see that the 6 rejections can be summarized by the rejections of the set only consisting of covariate 2, and the set only consisting of covariate 3. The other 4 rejections are larger sets containing one or both of the covariates. We see that implications come with a $p$-value, that can either be the true adjusted $p$-values (if the \Rfunarg{isadjusted} argument of the \Rfunction{DAGmethod} was set to \texttt{TRUE}) or just the $\alpha$-level on which the FWER is controlled. To get $p$-values of rejected sets that do not correspond to an implication, we can use the \Rfunction{pvalue} method that is available for \Robject{DAG} objects. The \Rfunction{pvalue} function expects a \Robject{DAG} object and an index or name as input arguments. The index must be the index of the set for which you want to know the $p$-value in the list of sets that is stored in the \Robject{DAGstructure} object. Normally, this will be the same index as the index found in the original list of sets, that is given as argument for the \Rfunction{construct} function, but if there were duplicate sets in the original list, these duplicates will be filtered by the \Rfunction{construct} function, and then the index can be different as well. 
+
+In our example all sets are unique, so the original list will be identical to the list stored in the \Robject{DAGstructure} object. To get the adjusted $p$-value of the null-hypothesis corresponding to the fourth set, which is the set consisting of covariate 2 and 3 we can thus use the following:
+
+<<pvaluefunctionDAG>>=
+pvalue(DAG,4)
+@
+
+or (is we use the name of the set)
+
+<<pvaluefunctionDAG2>>=
+pvalue(DAG, "23")
+@
+
+\subsection{Confidence sets for the number of false hypotheses in a given set}
+
+Just as in the case of a closed testing and the region procedure, while using the DAG procedure we are able to make simultaneous $100(1-\alpha)$\% confidence sets for the number of false (or true) rejection within a given set $S$ of elementary hypotheses. We can even do more this time, because we can make such a confidence set for the number of false rejection within \emph{any} collection of hypotheses that we tested in our DAG procedure. In order to do so, we will again need an ILP solver.
+Given a \Robject{DAG} object, we can calculate the minimal number of false elementary hypotheses (i.e. true findings) in any given set of  hypotheses. This set has to be specified by a vector of indices or names. For example, if we want to know how many false hypotheses there should at least be in the family of the first three sets we wanted to test, we can specify a vector 1:3, and use the function \Rfunction{DAGpick} to calculate the lower confidence bound for the number of false sets/hypotheses in this family: 
+
+<<DAGpick>>=
+DAGpick(DAG, 1:3)
+@
+
+We see that the minimal number of sets that can be rejected with $(1-\alpha)$\% confidence within these first 3 sets, is 3. An almost trivial observation, since all these sets were indeed rejected by our DAG method. 
 
 \bibliography{cherrypackage}
 

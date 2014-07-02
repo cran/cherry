@@ -1,12 +1,12 @@
 Package: cherry
-Version: 0.4-9
-Date: 2014-04-24
+Version: 0.5-10
+Date: 2014-07-02
 Title: Multiple testing methods for exploratory research
 Author: Jelle Goeman, Aldo Solari, Rosa Meijer
 Maintainer: Jelle Goeman <jelle.goeman@radboudumc.nl>
-Depends: methods, bitops
+Depends: methods, bitops, lpSolve, Matrix
 Imports:
-Suggests: MASS, multtest
+Suggests: MASS, multtest, gurobi
 Description: This package implements a class of multiple testing
         methods that does not prescribe the user what hypotheses to
         reject, but instead allows the user to select the set of
@@ -14,12 +14,17 @@ Description: This package implements a class of multiple testing
         this selection by providing an upper confidence bound for the
         number of false rejections among the selected set. Because the
         confidence bounds are simultaneous for all possible rejected
-        sets, the validity is not compromised by post hoc selection.
+        sets, the validity is not compromised by post hoc selection. Some 
+	of the functions in this package are optionally enhanced by the gurobi
+	software and its accompanying R package. For installation of gurobi, follow the instructions at 
+	http://pages.gurobi.com/DownloadRegistration.html?/download/gurobi-optimizer and 
+	http://www.gurobi.com/documentation/5.6/quick-start-guide/r_installing_the_r_package.
 License: GPL (>= 2)
-Collate: closed.R shortcuts.R Meinshausen.R regionmethod.R
+Collate: closed.R shortcuts.R Meinshausen.R regionmethod.R DAGmethod.R
+        DAGstructure.R
 LazyLoad: yes
 URL: http://www.msbi.nl/goeman
-Packaged: 2014-04-26 13:26:29 UTC; Jelle
+Packaged: 2014-07-18 07:50:21 UTC; Jelle
 Repository: CRAN
-Date/Publication: 2014-04-27 14:57:10
+Date/Publication: 2014-07-18 10:09:13
 NeedsCompilation: no

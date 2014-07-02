@@ -16,7 +16,7 @@
 
 \title{Using the \Rpackage{cherry} \texttt{R} package}
 
-\author{Jelle Goeman \and Aldo Solari \and Rosa Meijer}
+\author{Jelle Goeman \and Aldo Solari}
 
 \date{Package version \Sexpr{packageDescription("cherry")$Version}\\Date \Sexpr{packageDescription("cherry")$Date}}
 

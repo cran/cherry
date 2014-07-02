@@ -664,8 +664,8 @@ setMethod("summary", "region", function(object) {
 #function that retrieves the implications from a given region object. 
 #The alpha level can be varied, if the supporting information is present in the region object.
 # waarom setGeneric??
-setGeneric("implications", function(object, alpha, ...) standardGeneric("implications"))
-setMethod("implications", "region", function(object, alpha, ...) {
+setGeneric("implications", function(object, ...) standardGeneric("implications"))
+setMethod("implications", "region", function(object, alpha) {
   if (missing(alpha))
     alpha <- object@alpha  
   
@@ -680,15 +680,15 @@ setMethod("implications", "region", function(object, alpha, ...) {
 })
 
 #function to retrieve the maximal alpha_value from the region object
-setMethod("alpha", "region", function(object, ...) {
+setMethod("alpha", "region", function(object) {
   object@alpha
 })
 
 
 #function to retrieve pvalues for all possible region hypotheses (indicated with left and right bound) from the region object
 #only able to return the value if the allpvalues matrix is stored in the region object
-setGeneric("pvalue", function(object, left, right, ...) standardGeneric("pvalue"))
-setMethod("pvalue", "region", function(object, left, right, ...) {
+setGeneric("pvalue", function(object, ...) standardGeneric("pvalue"))
+setMethod("pvalue", "region", function(object, left, right) {
   if(nrow(object@allpvalues) == 0)
     stop("The region object does not contain (adjusted) p-values for all possible region hypotheses.")
   

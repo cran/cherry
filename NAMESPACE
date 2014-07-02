@@ -2,8 +2,12 @@ import(methods)
 
 import(bitops)
 
-exportClasses(closure, region)
+import(lpSolve)
 
-exportMethods(summary, show, alpha, "alpha<-", defining, hypotheses, shortlist, pvalue, implications)
+import(Matrix)
 
-export(closed, pick, adjusted, pickFisher, pickSimes, curveFisher, curveSimes, pickMeinshausen, curveMeinshausen, regionpick, regionmethod, regionplot, regionplot2)
+exportClasses(closure, region, DAGstructure, DAG)
+
+exportMethods(summary, show, alpha, "alpha<-", defining, hypotheses, shortlist, pvalue, implications, istwoway)
+
+export(closed, pick, adjusted, pickFisher, pickSimes, curveFisher, curveSimes, pickMeinshausen, curveMeinshausen, regionpick, regionmethod, regionplot, regionplot2, construct, DAGmethod, DAGpick)
