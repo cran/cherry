@@ -223,10 +223,9 @@ pick <- function(closure, reject, alpha, silent = FALSE, plot = FALSE) {
     lengths <- rowSums(do.call(cbind, lengths))
     out <- max(lengths,0)
     if (!silent) {
-      cat("Rejected ", length(reject), " hypotheses.\n", sep="")
-      cat("At confidence level ", 1-closure@alpha, ": ", sep="")
-      cat("Correct rejections >= ", length(reject)-out, "; ", sep="")
-      cat("False rejections <= ", out, ".\n", sep="")
+      cat(length(reject), " hypotheses selected. At confidence level ", 1-closure@alpha, ":\n", sep="")
+      cat("False null-hypotheses >= ", length(reject)-out, "; ", sep="")
+      cat("True null-hypotheses  <= ", out, ".\n", sep="")
       return(invisible(length(reject)-out))
     } else
       return(length(reject)-out)

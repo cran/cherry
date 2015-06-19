@@ -18,11 +18,10 @@ setClass("DAG",
            implications = "logical",    # stores whether sets are implications at chosen alpha
            isadjusted = "logical",      # T if adjusted p-values are calculated, F otherwise
            rejected = "logical",        # stores whether sets are rejected
-           method = "character",        # stores whether any- or all-parent method has been used
+           method = "character",        # stores whether any-, all-parent or the structuredHolm method has been used
            twoway = "logical"           # stores whether underlying DAG structure had two-way logical relationships
          )
 )
-
 
 
 #TODO; try to remove check for length(implications)>0 
@@ -248,6 +247,7 @@ DAGmethod <- function(DAGstructure, test, alpha_max = 0.05, method = "all", isad
           if(method == "any")
           {
             rejected[i] <- TRUE
+            implications[i] <- TRUE 
             num_rejected <- num_rejected + 1
             adj_pvalues[i] <- alpha
             
@@ -542,7 +542,7 @@ solveLP_gurobi <-  function(col_index, row_index, val_index, obj, rhs, dir, rela
   #needed by gurobi,  
   params <- list(OutputFlag=0)
   
-  result <- gurobi::gurobi(model, params) #:: because gurobi function is not imported, only suggested
+  result <- gurobi::gurobi(model, params) #:: because gurobi function is not imported, only suggested, and not even truly loaded 
   result <- result$objval
   return(result)
   
@@ -561,7 +561,9 @@ solveLP_lpsolve <- function(col_index, row_index, val_index, obj, rhs, dir, rela
 #function that chooses the LPsolver to work with, based on installed packages. gurobi is suggested, lpSolve is imported at installation
 getLPsolver <- function() 
 {
-  if(suppressWarnings(require(gurobi, quietly=TRUE)))
+#  if(suppressWarnings(require(gurobi, quietly=TRUE)))
+#    solveLP_gurobi
+  if(suppressWarnings((requireNamespace("gurobi", quietly = TRUE))))
     solveLP_gurobi
   else
     solveLP_lpsolve
@@ -784,6 +786,7 @@ DAGpick <- function(DAG, indicators, optimization = "ILP")
   
   #choose LPsolver to work with
   solveLP <- getLPsolver()
+
   #calculate minimal value objective function
   result <- solveLP(col_index=col_index, row_index=row_index, val_index=val_index, obj=obj, rhs=rhs, dir=dir, relaxation=(optimization == "LP"), minmax="min")
   
@@ -794,13 +797,23 @@ DAGpick <- function(DAG, indicators, optimization = "ILP")
 
 
 setMethod("show", "DAG", function(object) {
-  cat("The ", object@method, "parent", ifelse(object@method == "all", "s", ""), "-method result on ", length(object@sets), " hypotheses.\n", sep="")
-  cat("There are ", sum(object@rejected), " hypotheses rejected out of a total of ", length(object@sets), " at an alpha-level of ", object@alpha, ".\n", sep="")
+  meth <- switch(object@method, 
+                 all = "all-parents",
+                 any = "any-parent",
+                 holm = "structured holm")
+  
+  cat("The ", meth, " method result on ", length(object@sets), " hypotheses.\n", sep="")
+  cat("There are ", sum(object@rejected), " hypotheses rejected out of a total of ", length(object@sets), "\n", "at an alpha-level of ", object@alpha, ".\n", sep="")
 })
 
 setMethod("summary", "DAG", function(object) {
-  cat("The ", object@method, "parent", ifelse(object@method == "all", "s", ""), "-method result on ", length(object@sets), " hypotheses.\n", sep="")
-  cat("There are ", sum(object@rejected), " hypotheses rejected out of a total of ", length(object@sets), " at an alpha-level of ", object@alpha, ".\n", sep="")
+  meth <- switch(object@method, 
+                 all = "all-parents",
+                 any = "any-parent",
+                 holm = "structured holm")
+  
+  cat("The ", meth, " method result on ", length(object@sets), " hypotheses.\n", sep="")
+  cat("There are ", sum(object@rejected), " hypotheses rejected out of a total of ", length(object@sets), "\n", "at an alpha-level of ", object@alpha, ".\n", sep="")
 })
 
 

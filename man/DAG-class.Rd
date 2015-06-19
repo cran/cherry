@@ -16,7 +16,7 @@
   These slots are not meant to be directly accessed by the user.
   \describe{
     \item{\code{sets}:}{Object of class "list". Stores unique original sets that are to be tested.}
-    \item{\code{method}:}{Object of class "character". Stores whether the any-parent or all-parents method has been used.}
+    \item{\code{method}:}{Object of class "character". Stores whether the any-parent, all-parents or structuredHolm method has been used.}
     \item{\code{isadjusted}:}{Object of class "logical". Stores whether adjusted p-values are calculated.}
     \item{\code{allpvalues}:}{Object of class "numeric". Stores (adjusted) p-values for all hypotheses. Has value NA if adjusted p-value is larger than alpha.}
     \item{\code{implications}:}{Object of class "logical". Stores whether hypotheses are implications at chosen alpha-level}
@@ -40,7 +40,7 @@
 
 \author{Rosa Meijer: \email{r.j.meijer@lumc.nl}}
 
-\seealso{\code{\link{DAGmethod}}, \code{\link{DAGpick}}.}
+\seealso{\code{\link{DAGmethod}}, \code{\link{DAGpick}}, \code{\link{structuredHolm}}.}
 
 \keyword{methods}
 

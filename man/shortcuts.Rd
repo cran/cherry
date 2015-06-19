@@ -17,9 +17,9 @@ pickFisher (p, select = seq_along(p), alpha=0.05, silent=FALSE)
 
 curveFisher (p, select = seq_along(p), order, alpha=0.05, plot = TRUE)
 
-pickSimes (p, select = seq_along(p), alpha=0.05, hommel=FALSE, silent=FALSE)
+pickSimes (hommel, select, alpha=0.05, silent=FALSE)
 
-curveSimes (p, select = seq_along(p), order, alpha=0.05, hommel=FALSE, plot = TRUE)
+curveSimes (hommel, select, order, alpha=0.05, plot = TRUE)
 
 pickMeinshausen (p, PM, select = seq_along(p), alpha=0.05, silent=FALSE)
 
@@ -28,13 +28,13 @@ curveMeinshausen (p, PM, select = seq_along(p), order, alpha=0.05, plot = TRUE)
 
 \arguments{
     \item{p}{The vector of p-values for all tested hypotheses.}
+    \item{hommel}{The hommel object, obtained from the hommelFast function.}
     \item{PM}{A matrix of permutation p-values. Rows are hypotheses; columns are permutations.}
     \item{select}{The indexing vector of the p-values of the hypotheses to be selected. May be any type of appropriate indexing vector (integers, logical, or character).}
     \item{order}{The indexing vector specifying the order in which p-values of the hypotheses are to be rejected. May be integer or character.}
     \item{alpha}{The significance level of the test procedure.}
     \item{silent}{If \code{FALSE}, prints verbose result to the screen.}
     \item{plot}{If \code{TRUE}, plots the curve of correct rejections versus total rejections.}
-    \item{hommel}{If \code{TRUE}, uses Hommel's (1983) variant of Simes' inequality. This variant is more conservative, but is valid under any form of dependence of the p-values.}
 }
 
 \details{The results of the \code{pickFisher}, \code{pickSimes} and \code{pickMeinshausen} functions are identical to applying \code{\link{closed}} and \code{\link{pick}}, for specific choices of the local test, but are computationally more efficient. \code{pickFisher} uses local tests based on Fisher combinations. This local test is only valid if p-values of true hypotheses are independent. \code{pickSimes} uses a local test based on Simes' inequality. It is valid if p-values of true hypotheses are independent but also under some forms of positive correlations. The Hommel variant of the Simes local test is valid under any dependence structure of the p-values. \code{pickMeinshausen} is a permutation-based variant of \code{pickSimes}. See the reference below.
@@ -62,10 +62,11 @@ Meinshausen (2006) Scandinavian Journal of Statistics 33 (2), 227-237.
 
 
   # Simes method
-  pickSimes(NAEP, c("NH", "NC", "IA"))
-  pickSimes(NAEP, 1:7)
-  curveSimes(NAEP)
-  curveSimes(NAEP, select=1:7)
+  hom <- hommelFast(NAEP)
+  pickSimes(hom, c("NH", "NC", "IA"))
+  pickSimes(hom, 1:7)
+  curveSimes(hom)
+  curveSimes(hom, select=1:7)
   
   # Meinshausen's method
   library(multtest)

@@ -6,8 +6,10 @@ import(lpSolve)
 
 import(Matrix)
 
-exportClasses(closure, region, DAGstructure, DAG)
+import(slam)
+
+exportClasses(closure, region, DAGstructure, DAG, hommel)
 
 exportMethods(summary, show, alpha, "alpha<-", defining, hypotheses, shortlist, pvalue, implications, istwoway)
 
-export(closed, pick, adjusted, pickFisher, pickSimes, curveFisher, curveSimes, pickMeinshausen, curveMeinshausen, regionpick, regionmethod, regionplot, regionplot2, construct, DAGmethod, DAGpick)
+export(closed, pick, adjusted, pickFisher, pickSimes, curveFisher, curveSimes, pickMeinshausen, curveMeinshausen, regionpick, regionmethod, regionplot, regionplot2, construct, DAGmethod, DAGpick, hommelFast, structuredHolm)

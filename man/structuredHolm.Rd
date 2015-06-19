@@ -1,34 +1,32 @@
-\name{DAG Testing}
+\name{structured Holm}
 
-\alias{DAGmethod}
+\alias{structuredHolm}
 
-\title{Testing of hypotheses, forming a DAG.}
+\title{Testing of hypotheses, forming a DAG, by using a variant of Holm's method.}
 
 \description{Tests all hypotheses in a given DAG while controlling the FWER, using a user-specified local test.}
 
-\usage{ DAGmethod (DAGstructure, test, alpha_max = 0.05, method = "all", isadjusted = FALSE, 
-        optimization = "none", degree = "group", pvalues = NULL, verbose = FALSE)}
+\usage{ structuredHolm (DAGstructure, test, alpha_max = 0.05, isadjusted = FALSE, 
+optimization = "none", pvalues = NULL, verbose = FALSE)}
 
 \arguments{
   \item{DAGstructure}{DAGstructure object, as returned by the function \code{construct}.}
   \item{test}{A function that performs the local test. The function should have a set as input and return a p-value.}
   \item{alpha_max}{The significance level of the test procedure.}
-  \item{method}{Type of DAG procedure that is chosen. "all" gives the all-parents procedure, "any" the any-parent procedure.}
   \item{isadjusted}{If set to TRUE, adjusted p-values will be calculated. Otherwise, the p-values of all rejected hypotheses will equal alpha_max.}
   \item{optimization}{Can be, in ascending order of accuracy and computational costs: "none", "LP" (linear programming) or "ILP" (integer linear programming).}
-  \item{degree}{Can be "group" or "individual". If "group" is chosen, optimization is done on a group level, otherwise on an individual level (more accurate, but more time-consuming).}
   \item{pvalues}{Optional (in case of stored p-values): a vector in which the raw p-values of the exact sets as found in the DAGstructure argument are stored (in the same order). If the test function is provided, this argument is not necessary.}
   \item{verbose}{If set to TRUE, while running the method, a counter will indicate how many hypotheses are already rejected.}
 }
 
-\details{The function \code{DAGmethod} tests all possible hypotheses within a given DAG structure, while controlling the familywise error rate.}
+\details{The function \code{structuredHolm} tests all possible hypotheses within a given DAG structure, while controlling the familywise error rate.}
 
-\value{The function \code{DAGmethod} returns an object of class \code{\link{DAG}}.}
+\value{The function \code{structuredHolm} returns an object of class \code{\link{DAG}}.}
 
 \author{Rosa Meijer: \email{r.j.meijer@lumc.nl}}
 
 \references{
-  Meijer and Goeman (2015) Biometrical Journal 57 (1) 123-143.
+  Meijer and Goeman (2015) Briefings in Bioinformatics, submitted.
 }
 
 \seealso{\code{\link{DAG}}, \code{\link{DAGstructure}}, \code{\link{construct}}, \code{\link{DAGpick}}.}
@@ -63,8 +61,8 @@
     return(pf(x$fstatistic[1],x$fstatistic[2],x$fstatistic[3],lower.tail=FALSE))  
   }
 
-  # Perform the DAG procedure (default is all-parents method).
-  DAG <- DAGmethod(struct, mytest, isadjusted=TRUE)
+  # Perform the structuredHolm procedure.
+  DAG <- structuredHolm(struct, mytest, isadjusted=TRUE)
   summary(DAG)
   
   # What are the smallest sets that are found to be significant? 

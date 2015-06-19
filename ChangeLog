@@ -1,3 +1,9 @@
+0.6-11
+- added function hommelFast
+- added function structuredHolm
+- changed functions pickSimes and curveSimes
+- fixed small bug in function DAGmethod, corresponding to the optimization option of the any-parent method
+
 0.5-10
 - added functions corresponding to the DAG procedure (any- and all-parents variant)
 

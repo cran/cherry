@@ -30,7 +30,7 @@ regionmethod (weights, test, alpha_max = 0.05, all_pvalues = FALSE,
 \author{Rosa Meijer: \email{r.j.meijer@lumc.nl}}
 
 \references{
-  Meijer, Krebs and Goeman (2014) Statistical Applications in Genetics and Molecular Biology.
+  Meijer, Krebs and Goeman (2015) Statistical Applications in Genetics and Molecular Biology 14 (1) 1-19.
 }
 
 \examples{

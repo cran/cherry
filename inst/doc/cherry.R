@@ -55,15 +55,17 @@ curveFisher(NAEP, order=c(8,3,4,2), plot=FALSE)
 ###################################################
 ### code chunk number 9: pickSimes
 ###################################################
-pickSimes(NAEP, c("HI","MN","IA"))
-curveSimes(NAEP, plot=FALSE)
+hom <- hommelFast(NAEP)
+pickSimes(hom, c("HI","MN","IA"))
+curveSimes(hom, plot=FALSE)
 
 
 ###################################################
 ### code chunk number 10: hommel
 ###################################################
-pickSimes(NAEP, c("HI","MN","IA"), hommel=TRUE)
-curveSimes(NAEP, plot=FALSE, hommel=TRUE)
+hom <- hommelFast(NAEP, simes=FALSE)
+pickSimes(hom, c("HI","MN","IA"))
+curveSimes(hom, plot=FALSE)
 
 
 ###################################################
@@ -346,5 +348,61 @@ pvalue(DAG, "23")
 ### code chunk number 49: DAGpick
 ###################################################
 DAGpick(DAG, 1:3)
+
+
+###################################################
+### code chunk number 50: generatedataDAGholm
+###################################################
+set.seed(1)
+n=100
+p=4
+X <- matrix(rnorm(n*p),n,p)
+beta <- c(0,0.5,0.5,0)
+Y <- X %*% beta + rnorm(n)
+
+
+###################################################
+### code chunk number 51: makesetsholm
+###################################################
+sets <- list(c(1,2,3,4), c(1,2), c(2,3,4), c(2,3), 1, 2, 3, 4)
+names(sets) <- c(1234, 12, 234, 23, 1, 2, 3, 4)
+
+
+###################################################
+### code chunk number 52: makeDAGholm
+###################################################
+struct <- construct(sets)
+
+
+###################################################
+### code chunk number 53: twowayholm
+###################################################
+istwoway(struct)
+
+
+###################################################
+### code chunk number 54: Ftest2holm
+###################################################
+mytest <- function(set)
+{ 
+  X <- X[,set,drop=FALSE]
+  lm.out <- lm(Y ~ X)
+  x <- summary(lm.out)
+  return(pf(x$fstatistic[1],x$fstatistic[2],
+            x$fstatistic[3],lower.tail=FALSE))  
+}
+
+
+###################################################
+### code chunk number 55: holmmethod
+###################################################
+DAG <- structuredHolm(struct, mytest, isadjusted=TRUE)
+summary(DAG)
+
+
+###################################################
+### code chunk number 56: holmpval
+###################################################
+pvalue(DAG)
 
 

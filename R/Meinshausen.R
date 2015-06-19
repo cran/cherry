@@ -29,9 +29,9 @@ pickMeinshausen <- function(p, PM, select = seq_along(p), alpha=0.05, silent=FAL
   out<-max(lag)
   
   if (!silent) {
-    cat("Rejected ", nrej, " hypotheses. At confidence level ", 1-alpha, ":\n", sep="")
-    cat("Correct rejections >= ", out, "; ", sep="")
-    cat("False rejections <= ", nrej-out, ".\n", sep="")
+    cat(nrej, " hypotheses selected. At confidence level ", 1-alpha, ":\n", sep="")
+    cat("False null-hypotheses >= ", out, "; ", sep="")
+    cat("True null-hypotheses <= ", nrej-out, ".\n", sep="")
     invisible(nrej-out)
   } else
     
@@ -88,9 +88,9 @@ curveMeinshausen <- function(p, PM, select = seq_along(p), order, alpha=0.05, pl
     false <- c(0, res)
     xs <- 1:length(false)-.5
     tots <- 0:length(res)
-    plot(xs, tots, type="S", xlab="number of rejections", ylab="number of rejections", lty=2)
+    plot(xs, tots, type="S", xlab="number of hypotheses", ylab="number of false null-hypotheses", lty=2)
     lines(xs, false, type="S")
-    legend("topleft", c(paste("correct rejections (", 100*(1-alpha), "% conf.)", sep=""),"others"), lty=1:2)
+    legend("topleft", c(paste("false null-hypotheses (", 100*(1-alpha), "% conf.)", sep=""),"others"), lty=1:2)
     invisible(res)
   } else
     res

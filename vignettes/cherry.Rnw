@@ -38,15 +38,17 @@ The \Rpackage{cherry} package is a package for multiple hypothesis testing. The 
 
 Suppose a researcher has performed an experiment, possibly a genomics experiment or some other experiment in which a large or small number of statistical hypotheses have been tested. From the results of the experiment the user wants to select a number of `promising' results. Which results are considered promising may depend on any mixture of considerations, such as (unadjusted) significance, effect size, and domain knowledge. One question the researcher may ask is how many false positive findings are present in the selected list. This is the question the \Rpackage{cherry} package is designed to answer.
 
-The suggested way of working with this package is as follows. Before the data are gathered, two choices have to be made. The first choice is what hypotheses are of potential interest. This is the working collection of hypotheses. The second choice is what statistical test is to be done for each hypothesis, and for each intersection (or combination) of hypotheses. Examples of such choices are given in the rest of this vignette. Nothing else has to be decided before data collection. After data collection, the researcher can study the data as much as he or she likes, before deciding on a collection of rejected hypotheses of interest. This choice, together with the working collection and the tests is fed into the \Rpackage{cherry} package, which will return a confidence statement on the maximum number of true null hypotheses, i.e.\ false rejections, among the selected set. On the basis of this assessment, the researcher may reevaluate and come up with a different selection of interesting hypotheses, for which \Rpackage{cherry} will again give a confidence statement. These confidence statements are not compromised by previous looks at the data, but remain valid however many times the researcher comes up with a new set.
+The suggested way of working with this package is as follows. Before the data are gathered, two choices have to be made. The first choice is what hypotheses are of potential interest. This is the working collection of hypotheses. The second choice is what statistical test is to be done for each hypothesis, and for each intersection (or combination) of hypotheses. Examples of such choices are given in the rest of this vignette. Nothing else has to be decided before data collection. After data collection, the researcher can study the data as much as he or she likes, before deciding on a collection of hypotheses of interest. This choice, together with the working collection and the tests is fed into the \Rpackage{cherry} package, which will return a confidence statement on the minimum number of false null hypotheses (i.e. true findings) among the selected set. On the basis of this assessment, the researcher may reevaluate and come up with a different selection of interesting hypotheses, for which \Rpackage{cherry} will again give a confidence statement. These confidence statements are not compromised by previous looks at the data, but remain valid however many times the researcher comes up with a new set.
 
 In \Rpackage{cherry} the traditional roles of user and algorithm in multiple testing have been reversed. In classical multiple testing procedures the user's task is to set an error rate to be controlled, and the task of the multiple testing procedure is to decide what hypotheses to reject. In \Rpackage{cherry}, the user chooses what hypotheses to reject, and the multiple testing procedure calculates the error rate. This way of working allows the user much more freedom and control. Most importantly, the error rates that are calculated are not invalidated by multiple looks at the data, and the user is free to study the data in every possible way before finally deciding what rejections to make. This makes the method ideally suited for exploratory research.
 
 Throughout the package and the vignette, the words ``true hypothesis'' and ``false rejection'' are used interchangeably, as rejection of a true hypothesis amounts to a false rejection. Similarly, ``false hypothesis'' and ``correct rejection'' often used as synonyms.
 
-The theory behind the methods is explained in detail in the papers \cite{Goeman2011} and \cite{Goeman2011b} and we refer readers to these papers for details. In this document, we present some worked out examples to demonstrate how \Rpackage{cherry} can be used and how its results should be interpreted. We start in Section \ref{fishersimes} with methods based on p-values that use either Fisher combinations or Simes inequality to combine p-values. These methods have the advantage that they are quick to use even if tens of thousands of hypotheses have been tested, but they do depend on assumptions and cannot always be used. Next, Section \ref{full} presents the general method in its full flexibility. This general method is computationally quite intensive and should only be used if the total number of hypotheses in the multiple testing problem is not much greater than 20. More methods of different types will be added to the \Rpackage{cherry} package in the future.
+The theory behind the methods is explained in detail in the papers \cite{Goeman2011} and \cite{Goeman2011b} and we refer readers to these papers for details. In this document, we present some worked out examples to demonstrate how \Rpackage{cherry} can be used and how its results should be interpreted. We start in Section \ref{fishersimes} with methods based on p-values that use either Fisher combinations or Simes inequality to combine p-values. These methods have the advantage that they are quick to use even if tens of thousands of hypotheses have been tested, but they do depend on assumptions and cannot always be used. The method based on Simes' inequality has as an added advantage that the results of Hommel's multiple testing procedure can be obtained in an efficient way, as we will also highlight in this section. Next, Section \ref{full} presents the general method in its full flexibility. This general method is computationally quite intensive and should only be used if the total number of hypotheses in the multiple testing problem is not much greater than 20. In Section \ref{region}, a new multiple testing procedure is introduced that is meant for testing hypotheses that are ordered in space or time. In the Section \ref{DAG} a similar procedure is discussed to test hypotheses that are structured in a Directed Aclycic Graph (DAG) and in Section \ref{strucholm} a variant of Holm's method, called "structured Holm" is proposed that is again suited for testing hypotheses structured in a DAG. Both the region and the DAG procedures (including structured Holm) allow for post-hoc analysis in the sense that simultaneously valid confidence intervals for the number of false hypotheses within any selected set of hypotheses can be constructed.  
 
-For an explanation of the theory behind the methods, and for more explanation and examples, see the papers \cite{Goeman2011} and \cite{Goeman2011b}.
+More methods of different types will be added to the \Rpackage{cherry} package in the future.
+
+For an explanation of the theory behind the methods, and for more explanation and examples, see the papers \cite{Goeman2011}, \cite{Goeman2011b}, \cite{Meijer2015a}, \cite{Meijer2015b}, \cite{Meijer2015c} and \cite{Meijer2015d}.
 
 
 \subsection{Intersection hypotheses and local tests}
@@ -79,7 +81,7 @@ The fact that we have p-values means that the choice of a statistical test for t
 
 Fisher combinations are based on the fact that if a p-value $p_i$ is under the null hypothesis, it is uniformly distributed (or stochastically smaller than that). Consequently, $-\log(p_i)$ is exponentially distributed with parameter $\lambda=1$, and $-2\log(p_i)$ is $\chi^2$ distributed with 2 degrees of freedom. If a number of $r$ $p$-values is independent, then $-2\sum_{i=1}^r \log(p_i)$ is $\chi^2$ distributed with $2r$ degrees of freedom. This suggests the Fisher combination test, a test for intersection hypotheses based on negative sums of logarithms of $p$-values that uses critical values from a $\chi^2$-distribution. This test is valid only when p-values for hypotheses that are under the null are independent. Fisher combination tests are powerful for detecting the presence of many small effects, but not so powerful for detecting few larger ones. Functions in \Rpackage{cherry} that use this test are the \Rfunction{pickFisher} and \Rfunction{curveFisher} functions.
 
-Suppose the researcher has chosen Fisher combinations and, after looking at the NAEP data, picks the hypotheses HI, MN and IA, and wants to know how many correct rejections he or she would make when rejecting these null hypotheses. This can be found with
+Suppose the researcher has chosen Fisher combinations and, after looking at the NAEP data, picks the hypotheses HI, MN and IA, and wants to know how many true and false null-hypotheses there are within this set. This can be found with
 
 <<pickFisher>>=
 pickFisher(NAEP, c("HI","MN","IA"))
@@ -87,22 +89,22 @@ pickFisher(NAEP, c("HI","MN","IA"))
 
 The hypotheses are referred to by name in this function call, but they can be referred to by any other selection method method, such as a logical vector, index or negative index. We can conclude at the default 95\%\ confidence that among the hypotheses HI, MN and IA there are at least 2 false hypotheses and at most one true one.
 
-Leaving out the second argument, \Rfunarg{select}, means rejecting all 34 hypotheses. This gives us an upper confidence bound to the number of true hypotheses in the complete working collection
+Leaving out the second argument, \Rfunarg{select}, means selecting all 34 hypotheses. This gives us an upper confidence bound to the number of true hypotheses in the complete working collection
 
 <<pickFisher_all>>=
 pickFisher(NAEP)
 @
 
-There are at least 19 correct rejections, i.e.\ false null hypotheses, and at most 15 false rejections, i.e.\ true null hypotheses among the 34 hypotheses. The 95\%\ confidence set for the number of true null hypotheses among the 34 goes from 0 (lower bound) to 15 (upper bound), and consequently the same confidence set for the number of false hypothese from 19 to 34. For the selected set HI, MN and IA, the 95\%\ confidence set for the number of true hypotheses goes from 0 to 1. It is important to know (and central to the method underlying the \Rpackage{cherry} package) that all these confidence intervals are simultaneous. There is no need to correct for multiple testing when selecting the most interesting one from all these confidence intervals.
+There are at least 19 false null hypotheses, and at most 15 true null hypotheses among the 34 hypotheses. The 95\%\ confidence set for the number of true null hypotheses among the 34 goes from 0 (lower bound) to 15 (upper bound), and consequently the same confidence set for the number of false hypothese from 19 to 34. For the selected set HI, MN and IA, the 95\%\ confidence set for the number of true hypotheses goes from 0 to 1. It is important to know (and central to the method underlying the \Rpackage{cherry} package) that all these confidence intervals are simultaneous. There is no need to correct for multiple testing when selecting the most interesting one from all these confidence intervals.
 
-Several options can be set in \Rfunction{pickFisher}. Setting the type I error rate \Rfunarg{alpha} (default 0.05) changes the confidence level of the statements made. Setting \Rfunarg{silent} to \Robject{TRUE} suppresses printing to the screen of the result. The \Rfunction{pickFisher} function's return value is the lower bound of the number of false null hypotheses, i.e.\ correct rejections.
+Several options can be set in \Rfunction{pickFisher}. Setting the type I error rate \Rfunarg{alpha} (default 0.05) changes the confidence level of the statements made. Setting \Rfunarg{silent} to \Robject{TRUE} suppresses printing to the screen of the result. The \Rfunction{pickFisher} function's return value is the lower bound of the number of false null hypotheses, i.e.\ true findings.
 
 <<pickFisher_return>>=
 res <- pickFisher(NAEP, silent=TRUE)
 res
 @
 
-The \Rfunction{curveFisher} function can give some additional information over \Rfunction{pickFisher}. Called without further arguments, the function returns lower bounds for the number of false null hypotheses, like \Rfunction{pickFisher}, but simultaneously for selecting the hypotheses with the smallest 1,2,3,\ldots, $p$-values. The results are displayed in a graph unless the \Rfunarg{plot} argument is set to \Robject{FALSE}. From these results, we see with 95\%\ confidence that 19 false null hypotheses are are present among all 34 hypotheses, as we saw before, but also that these 19 false null hypotheses must be among the 25 hypotheses with smallest $p$-values.
+The \Rfunction{curveFisher} function can give some additional information over \Rfunction{pickFisher}. Called without further arguments, the function returns lower bounds for the number of false null hypotheses, like \Rfunction{pickFisher}, but simultaneously for selecting the hypotheses with the smallest 1,2,3,\ldots, $p$-values. The results are displayed in a graph unless the \Rfunarg{plot} argument is set to \Robject{FALSE}. From these results, we see with 95\%\ confidence that 19 false null hypotheses are present among all 34 hypotheses, as we saw before, but also that these 19 false null hypotheses must be among the 25 hypotheses with smallest $p$-values.
 
 <<curveFisher>>=
 res <- curveFisher(NAEP)
@@ -115,37 +117,39 @@ curveFisher(NAEP)
 @
 \end{figure}
 
-The curveFisher function may be further tailored. The \Rfunarg{select} argument can be used to consider only a subset of the hypotheses, and the function will return the number of false null hypotheses among the 1,2,\ldots smallest $p$-values in the selected set. Alternatively, the \Rfunarg{order} argument can be used to set the order in which hypotheses should be rejected, rather than taking the order of increasing $p$-values. Compare
+The curveFisher function may be further tailored. The \Rfunarg{select} argument can be used to consider only a subset of the hypotheses, and the function will return the number of false null hypotheses among the 1,2,\ldots smallest $p$-values in the selected set. Alternatively, the \Rfunarg{order} argument can be used to set the order in which hypotheses should be selected, rather than taking the order of increasing $p$-values. Compare
 
 <<curveFisher_order>>=
 curveFisher(NAEP, select=c(8,3,4,2), plot=FALSE)
 curveFisher(NAEP, order=c(8,3,4,2), plot=FALSE)
 @
 
-Here, the first call uses the rejection order NC, HI, MN, TX, determined by the $p$-values; the second uses the rejection order TX, HI, MN, NC, given by the input. We interpret the second result as follows. Choosing TX only we have a result of 0, which means that we do not have 95\%\ confidence that TX corresponds to a false null hypothesis. The second result is 1, which means that choosing both TX and HI, we have detected at least one false null hypothesis with 95\%\ confidence. The third result, 2, refers too rejection of TX, HI and MN, the fourth result to the collection of all four hypotheses.
-
+Here, the first call uses the selection order NC, HI, MN, TX, determined by the $p$-values; the second uses the selection order TX, HI, MN, NC, given by the input. We interpret the second result as follows. Choosing TX only we have a result of 0, which means that we do not have 95\%\ confidence that TX corresponds to a false null hypothesis. The second result is 1, which means that choosing both TX and HI, we have detected at least one false null hypothesis with 95\%\ confidence. The third result, 2, refers to selecting TX, HI and MN, the fourth result to the collection of all four hypotheses.
 
 
 \subsection{The Simes inequality}
 
 The Simes inequality says that for a sequence of ordered $p$-values $p_{(1)}, \ldots, p_{(r)}$, under the null hypothesis we have $p_{(i)} \geq i\alpha/r$ simultaneously for all $i$ with probability at least $1-\alpha$. This inequality holds if p-values are independent, as shown by Simes, but also under some forms of positive correlation, as shown by \cite{Sarkar1997}. Simes' inequality suggests Simes' test, a test that rejects an intersection hypothesis of $r$ hypotheses if either the smallest $p$-value is smaller than $\alpha/r$ or the second smallest is smaller than $2\alpha/r$, or \ldots, or the largest p-value is smaller than $r\alpha/r=\alpha$. This test can be used as a local test in the \Rpackage{cherry} package. It is valid if $p$-values of true null hypotheses are always either independent or positively correlated. An alternative, more conservative test was formulated by Hommel; this test is valid whatever the distribution of the $p$-values.
 
-The functions \Rfunction{pickSimes} and \Rfunction{curveSimes} work in exactly the same way as \Rfunction{pickFisher} and \Rfunction{curveFisher} above, and they use the same options and arguments.
+To be able to use the functions \Rfunction{pickSimes} and \Rfunction{curveSimes} which are comparable to the \Rfunction{pickFisher} and \Rfunction{curveFisher} functions above, one extra preparing step has to be made. First, a \Robject{hommel} object has to be prepared, by using the \Rfunction{hommelFast} function. This function only has two arguments. The first argument is the \Rfunarg{pvalues} argument that expects a vector of $p$-values. The second argument is the \Rfunarg{simes} argument, that can be set to TRUE (which is the default) if a Simes' test has to be carried out or to FALSE if one wants to carry out the more conservative Hommel test. The function returns a \Robject{hommel} object, that can subsequently be used as input for the \Rfunction{pickSimes} and \Rfunction{curveSimes} functions. In addition, the \Robject{hommel} object can be of direct interest if one wants to find the adjusted p-values as given by Hommel's multiple testing procedures corresponding to the unadjusted p-values given as input. These adjusted p-values can be obtained by the \Rfunction{pvalue} function. For more information on the underlying method, we refer the reader to the paper \cite{Meijer2015c}.  
+
+Apart from the first argument, which is replaced by the \Robject{hommel} object and the \Rfunarg{hommel} argument that has been replaced by the \Rfunarg{simes} argument in the \Rfunction{hommelFast} function, the \Rfunction{pickSimes} and \Rfunction{curveSimes} functions use the same options and arguments as the \Rfunction{pickFisher} and \Rfunction{curveFisher} functions.
 
 <<pickSimes>>=
-pickSimes(NAEP, c("HI","MN","IA"))
-curveSimes(NAEP, plot=FALSE)
+hom <- hommelFast(NAEP)
+pickSimes(hom, c("HI","MN","IA"))
+curveSimes(hom, plot=FALSE)
 @
 
 Comparing these results with the ones obtained for the Fisher combinations above, we see that the Simes test allows fewer rejections. This is not generally true, and Simes may be more powerful in other data sets. In general, Fisher combinations can be said to have more power if there are many small effect sizes, whereas Simes has more power in the presence of a few stronger effects.
 
-The more conservative Hommel variant that makes no assumptions on the $p$-value distribution can be obtained by setting \Rfunarg{hommel=TRUE}. This variant is more conservative than one based on the regular Simes test.
+The more conservative Hommel variant that makes no assumptions on the $p$-value distribution can be obtained by setting \Rfunarg{simes=FALSE} while creating the \Robject{hommel} object. This variant is more conservative than the one based on the regular Simes test.
 
 <<hommel>>=
-pickSimes(NAEP, c("HI","MN","IA"), hommel=TRUE)
-curveSimes(NAEP, plot=FALSE, hommel=TRUE)
+hom <- hommelFast(NAEP, simes=FALSE)
+pickSimes(hom, c("HI","MN","IA"))
+curveSimes(hom, plot=FALSE)
 @
-
 
 \section{The general method} \label{full}
 
@@ -242,7 +246,7 @@ res
 @
 
 
-\subsection{Defining rejections and the shortlist}
+\subsection{Defining rejections and the shortlist}\label{defining}
 
 The \Rfunction{pick} function allows users to check out any desired set of hypotheses, but gives no guidance as to what sets of hypotheses to probe. Two other functions can help to see structure in the results of the closed testing procedure.
 
@@ -322,9 +326,9 @@ will cause functions such as \Rfunction{pick}, \Rfunction{defining}, \Rfunction{
 alpha(cta) <- NA
 @
 
-\section{Region procedure}
+\section{Region procedure} \label{region}
 
-In addition to the closed testing procedure, there is another multiple testing method implemented in the \Rpackage{cherry} package. The region procedure is a a multiple testing method for hypotheses that are ordered in space or time. Given such hypotheses, the elementary hypotheses as well as regions of consecutive hypotheses are of interest. Each region hypothesis will be denoted by $H_{ij}$, where $i$ and $j$ specify the left and right boundary of the corresponding region. The region procedure is a procedure that starts with testing the global null-hypothesis and when this hypothesis can be rejected it continues with further specifying the exact location/locations of the effect present. In every step of the procedure, only those hypotheses $H_{ij}$ are tested for which all $H_{kl}$ with $k\leq i \leq j \leq l$ are already rejected.
+In addition to the closed testing procedure, there is another multiple testing method implemented in the \Rpackage{cherry} package. The region procedure, which is described in detail in \cite{Meijer2015a}, is a multiple testing method for hypotheses that are ordered in space or time. Given such hypotheses, the elementary hypotheses as well as regions of consecutive hypotheses are of interest. Each region hypothesis will be denoted by $H_{ij}$, where $i$ and $j$ specify the left and right boundary of the corresponding region. The region procedure is a procedure that starts with testing the global null-hypothesis and when this hypothesis can be rejected it continues with further specifying the exact location/locations of the effect present. In every step of the procedure, only those hypotheses $H_{ij}$ are tested for which all $H_{kl}$ with $k\leq i \leq j \leq l$ are already rejected.
 
 
 \subsection{Using the region procedure}
@@ -366,9 +370,9 @@ summary(reg)
 @
 
 Using the function \Rfunction{regionmethod} results in a \Robject{region} object. From this \Robject{region} object we can retrieve different information. By using the \Rfunction{show} or \Rfunction{summary} function, we can see how many of the region hypotheses could be rejected on the given $\alpha$-level as specified by the
-\Rfunarg{alpha\_max} argument, which is 0.05 by default. In our example, we see that 179 region hypotheses could be rejected (out of a total number of 210). All these regions can be summarized by the regions that could be rejected themselves, but for which all smaller regions they contain could not get rejected. We will call those smallest rejectable region "implications". 
+\Rfunarg{alpha\_max} argument, which is 0.05 by default. In our example, we see that 179 region hypotheses could be rejected (out of a total number of 210). All these regions can be summarized by the regions that could be rejected themselves, but for which all smaller regions they contain could not get rejected. We will call those smallest rejectable regions "implications" (idential to the defining rejections as introduced in subsection \ref{defining}). 
 
-To get the implications from a \Robject{region} object, we can use the \Rfunction{implications}. This function requires a \Robject{region} object as argument, and has an optional argument \Rfunarg{alpha}. If \Rfunarg{alpha} is not specified, the implications corresponding to the argument \Rfunarg{alpha\_max}
+To get the implications from a \Robject{region} object, we can use the \Rfunction{implications} function. This function requires a \Robject{region} object as argument, and has an optional argument \Rfunarg{alpha}. If \Rfunarg{alpha} is not specified, the implications corresponding to the argument \Rfunarg{alpha\_max}
 of the \Robject{region} object are calculated. In our example, the implications look like this: 
 
 <<implications>>=
@@ -376,7 +380,7 @@ implications(reg)
 @
 
 Of these 7 implications, 6 correspond to an elementary hypothesis. Only the fifth implication corresponds to a region hypothesis with length larger than 1, namely to the region hypothesis of region (12,15).
-If we would want to have the implications corresponding to a different $\alpha$-level, we could either use the \Rfunction{regionmethod} function again and use a different value for \Rfunarg{alpha\_max}, or we could use our current \Robject{region} object and change the argument \Rfunarg{alpha} in the \Rfunction{implications} function. However, the second approach will only work if the value of \Rfunarg{alpha} is smaller than the value \Rfunarg{alpha\_max} that was used to make the \Robject{region} method. Furthermore, the \Rfunarg{all\_pvalues} as well as the \Rfunarg{isadjusted} argument in the call to the \Rfunction{regionmethod} function that was used to create the \Robject{region} object has to be set to \texttt{TRUE}. Only then, new implications can be computed. In our example, we set \Rfunarg{all\_pvalues}=\texttt{TRUE}, and we used the default value of 0.05 for \Rfunarg{alpha\_max}, so we can use the \Rfunction{implications} with \Rfunarg{alpha} set to all values smaller than 0.05. For example, if we want to know what implications we would have had if we controlled the FWER on 0.01, we can do this: 
+If we would want to have the implications corresponding to a different $\alpha$-level, we could either use the \Rfunction{regionmethod} function again and use a different value for \Rfunarg{alpha\_max}, or we could use our current \Robject{region} object and change the argument \Rfunarg{alpha} in the \Rfunction{implications} function. However, the second approach will only work if the value of \Rfunarg{alpha} is smaller than the value \Rfunarg{alpha\_max} that was used to make the \Robject{region} method. Furthermore, the \Rfunarg{all\_pvalues} as well as the \Rfunarg{isadjusted} argument in the call to the \Rfunction{regionmethod} function that was used to create the \Robject{region} object has to be set to \texttt{TRUE}. Only then, new implications can be computed. In our example, we set \Rfunarg{all\_pvalues}=\texttt{TRUE}, and we used the default value of 0.05 for \Rfunarg{alpha\_max}, so we can use the \Rfunction{implications} function with \Rfunarg{alpha} set to all values smaller than 0.05. For example, if we want to know what implications we would have had if we controlled the FWER on 0.01, we can do this: 
 
 <<implications2>>=
 implications(reg, alpha=0.01)
@@ -406,7 +410,7 @@ The plot functions do also have an optional \Rfunarg{alpha} argument, that can b
 
 \subsection{Confidence sets for the number of false hypotheses in a given set}
 
-Just as in the case of a closed testing procedure, while using the region procedure we are able to make simultaneous $100(1-\alpha)$\% confidence sets for the number of false (or true) rejection within a given set $S$ of elementary hypotheses.
+Just as in the case of a closed testing procedure, while using the region procedure we are able to make simultaneous $100(1-\alpha)$\% confidence sets for the number of false (or true) hypotheses within a given set $S$ of elementary hypotheses.
 Given a \Robject{region} object, we can calculate the minimal number of false elementary hypotheses (i.e. true findings) in any given set of elementary hypotheses. This set has to be specified by a list of regions. For example, if we want to know how many false hypotheses there should at least be in the set of the first and last 5 elementary hypotheses from our 20 elementary hypotheses, we can specify a list as follows: list(c(1,5),c(16,20)) and use the function \Rfunction{regionpick} to calculate the lower confidence bound for the number of false hypotheses in this set: 
 
 <<regionpick>>=
@@ -425,9 +429,9 @@ Again, there is an optional argument \Rfunarg{alpha} that can be used in the sam
 
 
 
-\section{DAG multiple testing procedure}
+\section{DAG multiple testing procedure} \label{DAG}
 
-In addition to the closed testing and region procedure, there is another multiple testing method implemented in the \Rpackage{cherry} package. The DAG procedure is a multiple testing procedure that tests hypotheses that are structured in a Directed Acyclic Graph (DAG). Each node in the DAG will represent an hypothesis, whereas the edges represent the underlying subset relations.
+In addition to the closed testing and region procedure, there is another multiple testing method implemented in the \Rpackage{cherry} package. The DAG procedure, which is described in detail in \cite{Meijer2015b}, is a multiple testing procedure that tests hypotheses that are structured in a Directed Acyclic Graph (DAG). Each node in the DAG will represent an hypothesis, whereas the edges represent the underlying subset relations.
 
 Our proposed method is a top-down method. This means that we start testing at the root(s) of the graph, so at a node without any parents. If the null-hypothesis corresponding to this root node can be rejected, we test the children of the root node, and we continue to test only those nodes that have \emph{at least one} of their parents or \emph{all} their parent nodes rejected. The procedure that tests a node when at least one of its parents is rejected is called the \emph{any}-parent variant, the procedure that tests a node only when all its parents are already rejected is called the \emph{all}-parent variant.
 
@@ -493,7 +497,7 @@ To use the any-parents procedure or different optimization options, the argument
 
 Using the function \Rfunction{DAGmethod} results in a \Robject{DAG} object. From this \Robject{DAG} object we can retrieve different information. By using the \Rfunction{show} or \Rfunction{summary} function, we can see how many of the hypotheses could be rejected on the given $\alpha$-level as specified by the \Rfunarg{alpha\_max} argument, which is 0.05 by default. In our example, we see that 6 sets could be rejected (out of a total number of 8). All these sets can be summarized by the smallest sets that could be rejected themselves, but for which all smaller sets they contain (i.e. their offspring) could not get rejected. We will call those smallest rejectable sets "implications". 
 
-To get the implications from a \Robject{DAG} object, we can use the \Rfunction{implications}. This function only requires a \Robject{DAG} object as argument. In our example, the implications look like this: 
+To get the implications from a \Robject{DAG} object, we can use the \Rfunction{implications} function. This function only requires a \Robject{DAG} object as argument. In our example, the implications look like this: 
 
 <<implicationsDAG>>=
 implications(DAG)
@@ -523,6 +527,78 @@ DAGpick(DAG, 1:3)
 @
 
 We see that the minimal number of sets that can be rejected with $(1-\alpha)$\% confidence within these first 3 sets, is 3. An almost trivial observation, since all these sets were indeed rejected by our DAG method. 
+
+
+\section{Structured Holm: Holm's method on a DAG} \label{strucholm}
+
+In addition to the all-parents and the any-parent method of the previous section, in this section we will describe a third multiple testing method that can be used on hypotheses that are structured in a Directed Acyclic Graph. In contrast to the previous methods, which were top-down methods, the new method, called "structured Holm" tests all hypotheses simultaneously in every step. In practice, this comes down to trying to reject the hypothesis with the smallest $p$-value in every step of the algorithm, while adjusting for the fact that this hypothesis is one of many still unrejected hypotheses.
+
+The method is a variant of Holm's method in which the DAG structure is taken into account. When the DAG has oneway properties, the method uses the DAG structure to reject all ancestor hypotheses of a rejected node. In case of twoway properties, the method can be made more powerful by estimating how many of the remaining hypotheses can still be simultaneously true.  
+
+\subsection{Using the structured Holm procedure}
+
+To perform the structured Holm procedure on a given dataset, as before, we first have to create a DAG stucture. Given a collection of sets/hypotheses that we want to test, the corresponding DAG can be formed by using the function \Rfunction{construct}. For more information on this function, we refer the reader to the previous section. The \Robject{DAGstructure} object can subsequently be used as input in the \Rfunction{structuredHolm} function.  
+Apart from this object, which is the functions first argument, a local test (or a vector of pre-calculated $p$-values) is needed.  Other options that can be specified are whether we want to have adjusted $p$-values (by setting the \Rfunarg{isadjusted} argument to TRUE) and whether we want to optimize our method further (in case we have a DAG with the twoway property). For the optimization step, the same ILP solvers will be used as described in the previous section. For large datasets, it will often be advisable to set the \Rfunarg{isadjusted} argument to FALSE to save computation time. 
+
+To illustrate the method, we first generate some data. Let us take a response vector $Y$ of length 100, and a matrix $X$ of 4 covariates that is generated in such a way that $Y$ is associated with only the second and the third covariate. 
+
+<<generatedataDAGholm>>=
+set.seed(1)
+n=100
+p=4
+X <- matrix(rnorm(n*p),n,p)
+beta <- c(0,0.5,0.5,0)
+Y <- X %*% beta + rnorm(n)
+@
+
+Let us assume we are interested in testing all covariates separately, but also in the set of all covariates simultaneously (corresponding to the null-hypothesis that none of the covariates is associated with the response), the set of covariate 1 and 2 together, the set of covariate 2,3 and 4 togehter, and the set of covariate 2 and 3. This would result in the following list: 
+
+<<makesetsholm>>=
+sets <- list(c(1,2,3,4), c(1,2), c(2,3,4), c(2,3), 1, 2, 3, 4)
+names(sets) <- c(1234, 12, 234, 23, 1, 2, 3, 4)
+@
+
+Based on these sets, we can make the corresponding graph structure by using the function \Rfunction{construct}: 
+
+<<makeDAGholm>>=
+struct <- construct(sets)
+@
+
+From this object we can check whether our desired DAG has twoway properties (which it should have, because all individual covariates are added): 
+
+<<twowayholm>>=
+istwoway(struct)
+@
+
+For the structured Holm multiple testing method to work, we additionally have to specify a local test. We choose to work with an $F$-test, which can be defined in the following way: 
+
+<<Ftest2holm>>=
+mytest <- function(set)
+{ 
+  X <- X[,set,drop=FALSE]
+  lm.out <- lm(Y ~ X)
+  x <- summary(lm.out)
+  return(pf(x$fstatistic[1],x$fstatistic[2],
+            x$fstatistic[3],lower.tail=FALSE))  
+}
+@
+
+The structured Holm procedure can now be used on the design matrix $X$ to find which (sets of) covariates are associated with the response by using the following function call: 
+
+<<holmmethod>>=
+DAG <- structuredHolm(struct, mytest, isadjusted=TRUE)
+summary(DAG)
+@
+
+The individual adjusted $p$-values can easily be retrieved by the \Rfunction{pvalue} function. 
+
+<<holmpval>>=
+pvalue(DAG)
+@
+
+The adjusted $p$-values that are larger than the chosen \Rfunarg{alpha\_max} value (which is 0.05 by default) are set to Inf. 
+
+The \Rfunction{structuredHolm} function has a \Robject{DAG} object as its output, as was the case for the all-parents and any-parent method, and on this \Robject{DAG} object all methods can be applied that were described in the previous section. 
 
 \bibliography{cherrypackage}
 

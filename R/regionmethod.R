@@ -551,9 +551,9 @@ regionpick <- function(region, intervals, alpha, silent = FALSE, ignore_weights 
     if (!silent) {
       cat("At confidence level ", 1-alpha, ": ", sep="")
       if (ignore_weights)
-        cat("False null-hypotheses (i.e. true findings) >= ", rejected_mass, "\n", sep="")
+        cat("False null-hypotheses >= ", rejected_mass, "\n", sep="")
       else
-        cat("Minimal weight of false null-hypotheses (i.e. true findings) >= ", rejected_mass, "\n", sep="")
+        cat("Minimal weight of false null-hypotheses >= ", rejected_mass, "\n", sep="")
       invisible(rejected_mass)
     } else
       rejected_mass
@@ -650,14 +650,14 @@ regionpick <- function(region, intervals, alpha, silent = FALSE, ignore_weights 
 setMethod("show", "region", function(object) {
   num_hyps <- length(object@weights)
   cat("Region method result on", num_hyps, "elementary hypotheses.\n")
-  cat("There are ", object@totalrejected, " region hypotheses rejected out of a total of ", num_hyps*(num_hyps+1)/2, " at an alpha-level of ", object@alpha, ".\n", sep="")
+  cat("There are ", object@totalrejected, " region hypotheses rejected out of a total of ", num_hyps*(num_hyps+1)/2, "\n", "at an alpha-level of ", object@alpha, ".\n", sep="")
 })
 
 #evt later veranderen. gaat over standaard summary heen? 
 setMethod("summary", "region", function(object) {
   num_hyps <- length(object@weights)
   cat("Region method result on", num_hyps, "elementary hypotheses.\n")
-  cat("There are ", object@totalrejected, " region hypotheses rejected out of a total of ", num_hyps*(num_hyps+1)/2, " at an alpha-level of ", object@alpha, ".\n", sep="")
+  cat("There are ", object@totalrejected, " region hypotheses rejected out of a total of ", num_hyps*(num_hyps+1)/2, "\n", "at an alpha-level of ", object@alpha, ".\n", sep="")
 })
 
 
@@ -687,7 +687,6 @@ setMethod("alpha", "region", function(object) {
 
 #function to retrieve pvalues for all possible region hypotheses (indicated with left and right bound) from the region object
 #only able to return the value if the allpvalues matrix is stored in the region object
-setGeneric("pvalue", function(object, ...) standardGeneric("pvalue"))
 setMethod("pvalue", "region", function(object, left, right) {
   if(nrow(object@allpvalues) == 0)
     stop("The region object does not contain (adjusted) p-values for all possible region hypotheses.")
