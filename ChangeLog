@@ -1,3 +1,10 @@
+0.6-12
+- updated NAMESPACE to current standards
+- maximized adjusted p-values to one if hommelFast with simes=FALSE
+- updated maintainer e-mail.
+- removed gurobi dependence (hopefully temporary)
+- conditionalized the multtest-dependent example
+
 0.6-11
 - added function hommelFast
 - added function structuredHolm

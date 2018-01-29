@@ -523,30 +523,30 @@ update_max_weights <- function(parents, children, rejected)
 
 
 #LP solver based on the package "gurobi"
-solveLP_gurobi <-  function(col_index, row_index, val_index, obj, rhs, dir, relaxation, minmax)
-{
-  A <- sparseMatrix(i=row_index,j=col_index,x=val_index)
-  
-  model             <- list()  
-  model$A           <- A
-  model$obj         <- obj
-  model$modelsense  <- minmax
-  model$rhs         <- rhs
-  model$sense       <- dir
-  
-  if(relaxation) #all parameters >= 0, <= 1 not needed to additionally specify since it's a minimization problem
-    model$vtype <- 'S'
-  else #all parameters binary
-    model$vtype      <- 'B'    
-  
-  #needed by gurobi,  
-  params <- list(OutputFlag=0)
-  
-  result <- gurobi::gurobi(model, params) #:: because gurobi function is not imported, only suggested, and not even truly loaded 
-  result <- result$objval
-  return(result)
-  
-}
+#solveLP_gurobi <-  function(col_index, row_index, val_index, obj, rhs, dir, relaxation, minmax)
+#{
+#  A <- sparseMatrix(i=row_index,j=col_index,x=val_index)
+#  
+#  model             <- list()  
+#  model$A           <- A
+#  model$obj         <- obj
+#  model$modelsense  <- minmax
+#  model$rhs         <- rhs
+#  model$sense       <- dir
+#  
+#  if(relaxation) #all parameters >= 0, <= 1 not needed to additionally specify since it's a minimization problem
+#    model$vtype <- 'S'
+#  else #all parameters binary
+#    model$vtype      <- 'B'    
+#  
+#  #needed by gurobi,  
+#  params <- list(OutputFlag=0)
+#  
+#  result <- gurobi::gurobi(model, params) #:: because gurobi function is not imported, only suggested, and not even truly loaded 
+#  result <- result$objval
+#  return(result)
+#  
+#}
 
 #LP solver based on the package "lpSolve"
 solveLP_lpsolve <- function(col_index, row_index, val_index, obj, rhs, dir, relaxation, minmax)
@@ -563,9 +563,9 @@ getLPsolver <- function()
 {
 #  if(suppressWarnings(require(gurobi, quietly=TRUE)))
 #    solveLP_gurobi
-  if(suppressWarnings((requireNamespace("gurobi", quietly = TRUE))))
-    solveLP_gurobi
-  else
+#  if(suppressWarnings((requireNamespace("gurobi", quietly = TRUE))))
+#    solveLP_gurobi
+#  else
     solveLP_lpsolve
 }
 

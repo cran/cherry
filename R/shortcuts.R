@@ -230,7 +230,10 @@ hommelFast <- function(pvalues, simes = TRUE)
   
   names(pvalues) <- names
   names(adjusted) <- names  
-  
+
+  if (!simes)
+    adjusted <- pmin(adjusted, 1)
+    
   out <- new("hommel",
              pvalues = pvalues,
              jvalues = jvalues,

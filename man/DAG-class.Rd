@@ -79,7 +79,7 @@
   summary(DAG)
   
   # What are the smallest sets that are found to be significant? If the sets have names, 
-  # as in our example, the \code{implications} function will return the names 
+  # as in our example, the implications function will return the names 
   # of the implying sets, together with their (adjusted) p-value. 
   # If no names are provided, indices will be used instead of the names. 
   implications(DAG)

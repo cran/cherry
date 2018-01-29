@@ -6,7 +6,11 @@ import(lpSolve)
 
 import(Matrix)
 
-import(slam)
+importFrom("graphics", "axis", "barplot", "legend", "lines", "par", "plot", "polygon", "segments", "text")
+
+importFrom("stats", "qchisq")
+
+importFrom("utils", "flush.console")
 
 exportClasses(closure, region, DAGstructure, DAG, hommel)
 
