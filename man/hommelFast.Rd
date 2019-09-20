@@ -28,8 +28,8 @@
   #(or Hommel's test, by choosing simes = FALSE):
   hom <- hommelFast(pvalues, simes = TRUE)
   
-  #Retrieve the first 10 adjusted p-values by using the \code{pvalue} method. 
-  pvalue(hom,1:10)
-  
-  
+  #Retrieve the first 10 adjusted p-values by using the \code{p.adjust} method 
+  # from the hommel package. Note that they are not sorted
+  hommel::p.adjust(hom)[1:10]
+
 }

@@ -1,3 +1,6 @@
+0.6-13
+- pickSimes and curveSimes now call the updated functions from the hommel package.
+
 0.6-12
 - updated NAMESPACE to current standards
 - maximized adjusted p-values to one if hommelFast with simes=FALSE

@@ -68,7 +68,7 @@ curveFisher <- function(p, select = seq_along(p), order, alpha=0.05, plot = TRUE
 }
 
 
-setClass("hommel",
+setClass("hommel_old",
          representation(
            pvalues = "numeric",         # store vector of p-values (possibly with names)
            jvalues = "numeric",         # stores vector of jvalues
@@ -79,11 +79,11 @@ setClass("hommel",
 )
 
 setGeneric("pvalue", function(object, ...) standardGeneric("pvalue"))
-setMethod("pvalue", "hommel", function(object, indicator) {
-  if(missing(indicator))
-    indicator <- 1: length(object@adjusted)
-  object@adjusted[indicator]
-})
+#setMethod("pvalue", "hommel_old", function(object, indicator) {
+#  if(missing(indicator))
+#    indicator <- 1: length(object@adjusted)
+#  object@adjusted[indicator]
+#})
 
 
 #own ceil function, needed because small rounding errors can be influential 
@@ -191,7 +191,10 @@ adjpvalues <- function(pvalues, jumpalpha, jvalues)
 
 #hommel = F means standard Simes test, hommel = T means test of Hommel 1983
 #hommel = F means standard Simes test, hommel = T means test of Hommel 1983
-hommelFast <- function(pvalues, simes = TRUE)
+hommelFast <- function(pvalues, simes = TRUE) {
+  hommel(p=pvalues, simes=simes) 
+}
+hommelFast_old <- function(pvalues, simes = TRUE)
 {
   if(any(is.na(pvalues))) 
     stop("missing values in input p-values")
@@ -234,7 +237,7 @@ hommelFast <- function(pvalues, simes = TRUE)
   if (!simes)
     adjusted <- pmin(adjusted, 1)
     
-  out <- new("hommel",
+  out <- new("hommel_old",
              pvalues = pvalues,
              jvalues = jvalues,
              jumpalpha = jumpalpha,
@@ -333,8 +336,25 @@ makeCats <- function(jumpalpha, jvalues, alpha, pvalues, simes)
 }
 
 
-
 pickSimes <- function(hommel, select, alpha=0.05, silent=FALSE) {
+  res <- discoveries(hommel, select, alpha=alpha)
+  
+  n <- length(hommel@p)
+  
+  if(missing(select))
+    select <- 1:n
+  
+  pvalues <- hommel@p[select]
+  
+  if (!silent) {
+    cat(length(pvalues), " hypotheses selected. At confidence level ", 1-alpha, ":\n", sep="")
+    cat("False null-hypotheses >= ", res, "; ", sep="")
+    cat("True null-hypotheses <= ", length(pvalues) - res, ".\n", sep="")
+    invisible(res)
+  } else
+    res 
+}
+pickSimes_old <- function(hommel, select, alpha=0.05, silent=FALSE) {
   
   n <- length(hommel@pvalues)
   
@@ -364,7 +384,41 @@ pickSimes <- function(hommel, select, alpha=0.05, silent=FALSE) {
 
 
 #TODO: check wheter select really goes well, seems to be an error with the names.. 
-curveSimes <- function(hommel, select, order, alpha=0.05, plot = TRUE)
+curveSimes <- function(hommel, select, order, alpha=0.05, plot = TRUE) {
+  if (!missing(order) & !missing(select)) 
+    stop("please provide either select or order, but not both")
+  
+  #  if(missing(order))
+  #    stop("No order specified.")
+  
+  n <- length(hommel@p)
+  
+  if(missing(order) && missing(select))
+    select = 1:n
+  
+  if(!missing(select)) #find the order based on increasing p-values
+  {
+    p <- hommel@p[select]
+    perm <- base::order(p, decreasing = FALSE)
+    order <- select[perm]
+  }
+  
+  res <- discoveries(hommel, ix=order, incremental=TRUE, alpha=alpha)
+  pvalues <- hommel@p[order]  
+  names(res) <- names(pvalues)
+  
+  if (plot) {
+    false <- c(0, res)
+    xs <- 1:length(false)-.5
+    tots <- 0:length(res)
+    plot(xs, tots, type="S", xlab="number of hypotheses", ylab="number of false null-hypotheses", lty=2)
+    lines(xs, false, type="S")
+    legend("topleft", c(paste("false null-hypotheses (", 100*(1-alpha), "% conf.)", sep=""),"others"), lty=1:2)
+    invisible(res)
+  } else
+    res
+}
+curveSimes_old <- function(hommel, select, order, alpha=0.05, plot = TRUE)
 {
   if (!missing(order) & !missing(select)) 
     stop("please provide either select or order, but not both")

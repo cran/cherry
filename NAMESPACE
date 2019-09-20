@@ -12,7 +12,9 @@ importFrom("stats", "qchisq")
 
 importFrom("utils", "flush.console")
 
-exportClasses(closure, region, DAGstructure, DAG, hommel)
+import("hommel")
+
+exportClasses(closure, region, DAGstructure, DAG)
 
 exportMethods(summary, show, alpha, "alpha<-", defining, hypotheses, shortlist, pvalue, implications, istwoway)
 
