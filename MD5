@@ -1,6 +1,6 @@
 d0610e4cc687b0f7d465a1d44814d9e4 *ChangeLog
-3e17293de0cd959e0ba9669ed58c784a *DESCRIPTION
-d4f9bef3b136f6f2fb0288d7f42f10c8 *NAMESPACE
+5f4db7adb7e81c86f0f90f5cd1aa689e *DESCRIPTION
+310d032a383c1a55585bc74f109c4134 *NAMESPACE
 00270177b39aa5a3e35837db8d1ceefb *R/DAGmethod.R
 1b3a6f50beb25eff680ff246e9a1c88a *R/DAGstructure.R
 075c08201a8f5301b45dd4b8d1b6d5de *R/Meinshausen.R
@@ -8,12 +8,12 @@ d4f9bef3b136f6f2fb0288d7f42f10c8 *NAMESPACE
 6a609a9fb422495951d6a9d043aa4c87 *R/regionmethod.R
 42367214be9174192a1dc18cc69fa904 *R/shortcuts.R
 146893c4cc0d620b16d45ee58c51b264 *R/structuredHolm.R
-f981fe4e6cfc4f8846a59f41526ec9b9 *build/vignette.rds
+5048f719f2d182afadee9e9abcc133f5 *build/vignette.rds
 aa40970da67b1352f888170662645dba *data/NAEP.RData
 edbe086066242567d6d1ed85b079621d *inst/CITATION
 6edbd6e3306058643db6e9557ea9b80a *inst/doc/cherry.R
 10ce3a3c287b41d3ada8fa932047d67e *inst/doc/cherry.Rnw
-e5d2d6d22ee828b9b7efd759fe498070 *inst/doc/cherry.pdf
+9a72b7f2f38f37aa0b800ef8bffd5476 *inst/doc/cherry.pdf
 584d87367eea02fc086751e4cfc3e2e4 *man/DAG-class.Rd
 cae028aaac1ae7d9c8fc447d5e0281cb *man/DAGmethod.Rd
 e5d370275c425129b4251c8e0e58b9a8 *man/DAGpick.Rd
